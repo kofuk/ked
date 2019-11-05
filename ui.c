@@ -50,7 +50,7 @@ static void write_header(char *fname)
 
 static void write_footer(char *msg)
 {
-    move_cursor(1, term_height);
+    move_cursor(1, (unsigned int)term_height);
 
     set_color(TCBLACK, TCWHITE);
 

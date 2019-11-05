@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stddef.h>
 #include <stdlib.h>
 
 #include "utilities.h"
@@ -19,7 +20,7 @@ char *itoa(unsigned int num)
     return result;
 }
 
-void clear_buffer(char *buf, unsigned int n)
+void clear_buffer(char *buf, size_t n)
 {
-    for (unsigned int i =  0; i < n; i++) buf[i] = 0;
+    for (size_t i =  0; i < n; i++) buf[i] = 0;
 }

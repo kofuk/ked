@@ -10,11 +10,11 @@
 
 static struct termios orig_termios;
 
-unsigned int term_width;
-unsigned int term_height;
+size_t term_width;
+size_t term_height;
 
 static char *line_buffer;
-static unsigned int line_buffer_pos;
+static size_t line_buffer_pos;
 
 void tputc(int c)
 {
@@ -26,13 +26,13 @@ void tputc(int c)
 
 void tputs(char *s) { write(1, s, strlen(s)); }
 
-unsigned int append_to_line(char *s)
+size_t append_to_line(char *s)
 {
     unsigned int len = (unsigned int)strlen(s);
 
     if (len + line_buffer_pos > term_width)
     {
-        unsigned int ncopy = (unsigned int)(term_width - line_buffer_pos);
+        size_t ncopy = term_width - line_buffer_pos;
         strncpy(line_buffer + line_buffer_pos, s, ncopy);
         line_buffer_pos = term_width;
 
@@ -48,7 +48,7 @@ unsigned int append_to_line(char *s)
 void flush_line(void)
 {
     // fill remaining columns with space to make background coloring work fine.
-    for (unsigned int i = line_buffer_pos; i < term_width; i++)
+    for (size_t i = line_buffer_pos; i < term_width; i++)
         line_buffer[i] = ' ';
 
     tputs(line_buffer);
@@ -84,8 +84,8 @@ static void init_variables(void)
     struct winsize w;
     ioctl(0, TIOCGWINSZ, &w);
 
-    term_width = (unsigned int)w.ws_col;
-    term_height = (unsigned int)w.ws_row;
+    term_width = (size_t)w.ws_col;
+    term_height = (size_t)w.ws_row;
 
     line_buffer = malloc(sizeof(char) * (term_width + 1));
     line_buffer[term_width] = 0;
