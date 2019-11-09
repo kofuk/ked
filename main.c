@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "buffer.h"
 #include "terminal.h"
 #include "ui.h"
 
@@ -27,14 +28,28 @@ static void check_term()
     }
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
     check_term();
+
+    if (argc < 2)
+    {
+        fputs("Filename required.\n", stderr);
+
+        return 1;
+    }
 
     term_set_up();
     ui_set_up();
 
-    editor_main_loop();
+    Buffer *buf = buffer_create(argv[1], argv[1]);
+
+    if (buf != NULL)
+    {
+        set_buffer(buf);
+
+        editor_main_loop();
+    }
 
     term_tear_down();
 

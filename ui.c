@@ -1,7 +1,12 @@
 #include <stdlib.h>
+#include <limits.h>
+#include <string.h>
 
+#include "buffer.h"
+#include "string.h"
 #include "terminal.h"
 #include "ui.h"
+#include "utilities.h"
 
 #define TANONE "0"
 #define TABOLD "1"
@@ -27,6 +32,10 @@
 #define set_color(f, b) esc_write("[" TCFG f ";" TCBG b "m")
 #define set_attr(a) esc_write("[" a "m")
 #define set_style(a, f, g) esc_write("[" a ";" TCFG f ";" TCBG b "m")
+
+#define KEY_ESC 0x1b
+
+static int editor_exited;
 
 static void write_header(char *fname)
 {
@@ -67,4 +76,60 @@ void ui_set_up(void)
 {
     write_header(NULL);
     write_footer(NULL);
+}
+
+void exit_editor()
+{
+    editor_exited = 1;
+}
+
+static void redraw_editor(void)
+{
+    Range *r;
+
+    for (unsigned int i = 1; i <= UINT_MAX; i++)
+    {
+        r = buffer_line(current_buffer, (size_t)i);
+        if (r == NULL) break;
+
+        String *line = buffer_string_range(current_buffer, r);
+        move_cursor(0, i + 1);
+        append_to_line(line->buf);
+        flush_line();
+        string_destruct(line);
+    }
+
+    move_cursor(1, 2);
+}
+
+void editor_main_loop()
+{
+    write_header(current_buffer->buf_name);
+    redraw_editor();
+
+    for (;;)
+    {
+        if (editor_exited) break;
+
+        char c = (char)tgetc();
+        if (c == KEY_ESC)
+        {
+            c = (char)tgetc();
+            if (c == '[')
+            {
+                c = (char)tgetc();
+                if (c == 'A') move_cursor(cursor_x, cursor_y - 1);
+                else if (c == 'B') move_cursor(cursor_x, cursor_y + 1);
+                else if (c == 'C') buffer_cursor_forward(current_buffer);
+                else if (c == 'D') move_cursor(cursor_x - 1, cursor_y);
+            }
+        }
+
+        if (c == 'q') exit_editor();
+    }
+}
+
+void move_cursor_editor(unsigned int x, unsigned int y)
+{
+    move_cursor(x, y + 1);
 }

@@ -16,6 +16,9 @@ size_t term_height;
 static char *line_buffer;
 static size_t line_buffer_pos;
 
+unsigned int cursor_x;
+unsigned int cursor_y;
+
 void tputc(int c)
 {
     char buf[1];
@@ -61,7 +64,7 @@ void new_line(void)
     tputs("\r\n");
 }
 
-static int tgetc(void)
+int tgetc(void)
 {
     char buf[1];
 
@@ -75,8 +78,6 @@ void esc_write(char *s)
     tputc('\e');
     tputs(s);
 }
-
-static int editor_exited;
 
 static void init_variables(void)
 {
@@ -142,23 +143,12 @@ void term_tear_down()
     tear_down_variable();
 }
 
-void exit_editor()
-{
-    editor_exited = 1;
-}
 
-void editor_main_loop()
-{
-    for (;;)
-    {
-        if (editor_exited) break;
-
-        if (tgetc() == 'q') exit_editor();
-    }
-}
 
 void move_cursor(unsigned int x, unsigned int y)
 {
+    cursor_x = x;
+    cursor_y = y;
     esc_write("[");
     char *line = itoa(y);
     tputs(line);

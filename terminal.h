@@ -10,11 +10,12 @@ void term_tear_down(void);
 extern size_t term_width;
 extern size_t term_height;
 
-void editor_main_loop(void);
-void exit_editor(void);
+extern unsigned int cursor_x;
+extern unsigned int cursor_y;
 
 void tputc(int);
-void tputs(char*);
+void tputs(char *);
+int tgetc(void);
 size_t append_to_line(char*);
 void flush_line(void);
 void new_line(void);
