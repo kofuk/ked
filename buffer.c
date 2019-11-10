@@ -12,6 +12,16 @@
 #include "ui.h"
 #include "utilities.h"
 
+#define POINT_TO_INDEX(buf, point, result)                                     \
+    do {                                                                       \
+        if (point >= buf->gap_start)                                           \
+            result = point + (buf->gap_end - buf->gap_start);                  \
+        else                                                                   \
+            result = point;                                                    \
+    } while (0)
+
+#define IS_OUT_OF_BOUNDS(buf, index) index >= buf->buf_size
+
 Buffer *current_buffer;
 
 Buffer *buffer_create(const char *path, const char *buf_name)
@@ -120,12 +130,6 @@ String *buffer_string_range(Buffer *this, Range *r)
     return result;
 }
 
-static char buffer_char_at(Buffer *this, size_t i)
-{
-    if (i < this->gap_start) return this->content[i];
-    else return this->content[i + (this->gap_end - this->gap_start)];
-}
-
 static void buffer_flush_cursor_position(Buffer *this)
 {
     move_cursor_editor(this->cursor_x, this->cursor_y);
@@ -133,9 +137,15 @@ static void buffer_flush_cursor_position(Buffer *this)
 
 void buffer_cursor_forward(Buffer *this)
 {
-    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1) return;
+    size_t old_point = this->point;
+    size_t new_point = old_point + 1;
+    size_t old_i;
+    POINT_TO_INDEX(this, old_point, old_i);
+    size_t new_i;
+    POINT_TO_INDEX(this, new_point, new_i);
+    if (IS_OUT_OF_BOUNDS(this, new_i)) return;
 
-    if (buffer_char_at(this, this->point) == '\n')
+    if (this->content[old_i] == '\n')
     {
         this->cursor_x = 1;
         ++(this->cursor_y);
@@ -145,7 +155,7 @@ void buffer_cursor_forward(Buffer *this)
         ++(this->cursor_x);
     }
 
-    ++(this->point);
+    this->point = new_point;
 
     buffer_flush_cursor_position(this);
 }
