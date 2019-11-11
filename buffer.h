@@ -33,6 +33,7 @@ Range *buffer_line(Buffer*, size_t);
 String *buffer_string_range(Buffer*, Range*);
 
 void buffer_cursor_forward(Buffer*);
+void buffer_cursor_back(Buffer*);
 
 void set_buffer(Buffer*);
 

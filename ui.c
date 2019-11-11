@@ -121,7 +121,7 @@ void editor_main_loop()
                 if (c == 'A') move_cursor(cursor_x, cursor_y - 1);
                 else if (c == 'B') move_cursor(cursor_x, cursor_y + 1);
                 else if (c == 'C') buffer_cursor_forward(current_buffer);
-                else if (c == 'D') move_cursor(cursor_x - 1, cursor_y);
+                else if (c == 'D') buffer_cursor_back(current_buffer);
             }
         }
 

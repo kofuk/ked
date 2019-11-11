@@ -109,6 +109,50 @@ END:
     return result;
 }
 
+static Range *buffer_line_at_point(Buffer *this, size_t point)
+{
+    size_t p = point;
+
+    size_t index;
+    POINT_TO_INDEX(this, p, index);
+
+    if (IS_OUT_OF_BOUNDS(this, index)) return NULL;
+
+    Range *result = malloc(sizeof(Range));
+
+    size_t tmp = p;
+
+    if (tmp > 0)
+    {
+        do {
+            --tmp;
+            POINT_TO_INDEX(this, tmp, index);
+
+            if (this->content[index] == '\n')
+            {
+                // to cope with the condition that point is on in beginning of buffer.
+                ++index;
+
+                break;
+            }
+        } while (index > 0 && tmp > 0);
+    }
+
+    result->start = index - 1;
+
+    while (!(IS_OUT_OF_BOUNDS(this, index)))
+    {
+        POINT_TO_INDEX(this, p, index);
+        if (this->content[index] == '\n') break;
+
+        ++p;
+    }
+
+    result->end = index;
+
+    return result;
+}
+
 String *buffer_string_range(Buffer *this, Range *r)
 {
     String *result;
@@ -154,6 +198,37 @@ void buffer_cursor_forward(Buffer *this)
     {
         ++(this->cursor_x);
     }
+
+    this->point = new_point;
+
+    buffer_flush_cursor_position(this);
+}
+
+void buffer_cursor_back(Buffer *this)
+{
+    size_t index;
+    POINT_TO_INDEX(this, this->point, index);
+    if (this->point == 0 || index == 0) return;
+
+    size_t new_point = this->point - 1;
+    POINT_TO_INDEX(this, new_point, index);
+
+    if (this->cursor_x == 1)
+    {
+        --(this->cursor_y);
+
+        Range *r = buffer_line_at_point(this, new_point);
+        String *line = buffer_string_range(this, r);
+        clear_buffer((char*)r, sizeof(Range));
+        free(r);
+        r = NULL;
+
+        this->cursor_x = (unsigned int)line->length;
+
+        string_destruct(line);
+    }
+    else
+        --(this->cursor_x);
 
     this->point = new_point;
 
