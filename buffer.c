@@ -155,6 +155,10 @@ static Range *buffer_line_at_point(Buffer *this, size_t point)
 
 String *buffer_string_range(Buffer *this, Range *r)
 {
+    // check if `r' is not point out of range.
+    if (r->start >= this->buf_size || r->end >= this->buf_size)
+        return NULL;
+
     String *result;
 
     if (r->start < this->gap_start && r->end > this->gap_end)
@@ -223,9 +227,12 @@ void buffer_cursor_back(Buffer *this)
         free(r);
         r = NULL;
 
-        this->cursor_x = (unsigned int)line->length;
+        if (line != NULL)
+        {
+            this->cursor_x = (unsigned int)line->length;
 
-        string_destruct(line);
+            string_destruct(line);
+        }
     }
     else
         --(this->cursor_x);
@@ -237,9 +244,24 @@ void buffer_cursor_back(Buffer *this)
 
 void buffer_insert(Buffer *this, char c)
 {
-    if (this->gap_end - this->gap_start < 32)
+    if (this->gap_end - this->gap_start < MIN_GAP_SIZE)
     {
-        //TODO: allocate buffer.
+        char *new_buf = malloc(sizeof(char) * (this->buf_size + INIT_GAP_SIZE));
+        memcpy(new_buf, this->content, this->gap_start);
+        memcpy(new_buf + this->gap_end + INIT_GAP_SIZE,
+               this->content + this->gap_end, this->buf_size - this->gap_end);
+
+        char *old_buf = this->content;
+        size_t old_size = this->buf_size;
+
+        this->content = new_buf;
+
+        this->gap_end += INIT_GAP_SIZE;
+        this->buf_size += INIT_GAP_SIZE;
+
+        clear_buffer(old_buf, old_size);
+        free(old_buf);
+        old_buf = NULL;
     }
 
     this->content[this->gap_start] = c;

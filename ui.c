@@ -92,11 +92,17 @@ void redraw_editor(void)
         r = buffer_line(current_buffer, (size_t)i);
         if (r == NULL) break;
 
-        String *line = buffer_string_range(current_buffer, r);
         move_cursor(1, i + 1);
-        append_to_line(line->buf);
+
+        String *line = buffer_string_range(current_buffer, r);
+        if (line != NULL)
+        {
+            append_to_line(line->buf);
+            string_destruct(line);
+        }
         flush_line();
-        string_destruct(line);
+
+        free(r);
     }
 
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);

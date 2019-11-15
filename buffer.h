@@ -6,6 +6,7 @@
 #include "string.h"
 
 #define INIT_GAP_SIZE 1024
+#define MIN_GAP_SIZE 32
 
 typedef struct {
     char *buf_name;
