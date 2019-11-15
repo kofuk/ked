@@ -35,6 +35,8 @@ String *buffer_string_range(Buffer*, Range*);
 void buffer_cursor_forward(Buffer*);
 void buffer_cursor_back(Buffer*);
 
+void buffer_insert(Buffer*, char);
+
 void set_buffer(Buffer*);
 
 #endif

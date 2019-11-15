@@ -83,7 +83,7 @@ void exit_editor()
     editor_exited = 1;
 }
 
-static void redraw_editor(void)
+void redraw_editor(void)
 {
     Range *r;
 
@@ -93,13 +93,13 @@ static void redraw_editor(void)
         if (r == NULL) break;
 
         String *line = buffer_string_range(current_buffer, r);
-        move_cursor(0, i + 1);
+        move_cursor(1, i + 1);
         append_to_line(line->buf);
         flush_line();
         string_destruct(line);
     }
 
-    move_cursor(1, 2);
+    move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
 }
 
 void editor_main_loop()
@@ -124,8 +124,11 @@ void editor_main_loop()
                 else if (c == 'D') buffer_cursor_back(current_buffer);
             }
         }
+        else {
+            if (c == 'q') exit_editor();
 
-        if (c == 'q') exit_editor();
+            buffer_insert(current_buffer, c);
+        }
     }
 }
 

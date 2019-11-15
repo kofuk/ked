@@ -162,7 +162,7 @@ String *buffer_string_range(Buffer *this, Range *r)
         size_t size = r->end - r->start - (this->gap_end - this->gap_start);
         result = string_create(NULL, size);
         memcpy(result->buf, this->content + r->start, this->gap_start - r->start);
-        memcpy(result->buf + (this->gap_start = r->start), this->content + this->gap_end, r->end - this->gap_end);
+        memcpy(result->buf + (this->gap_start + r->start), this->content + this->gap_end, r->end - this->gap_end);
     }
     else
     {
@@ -233,6 +233,33 @@ void buffer_cursor_back(Buffer *this)
     this->point = new_point;
 
     buffer_flush_cursor_position(this);
+}
+
+void buffer_insert(Buffer *this, char c)
+{
+    if (this->gap_end - this->gap_start < 32)
+    {
+        //TODO: allocate buffer.
+    }
+
+    this->content[this->gap_start] = c;
+
+    ++(this->gap_start);
+    ++(this->point);
+
+    if (c == '\n')
+    {
+        ++(this->n_lines);
+
+        this->cursor_x = 1;
+        ++(this->cursor_y);
+    }
+    else
+    {
+        ++(this->cursor_x);
+    }
+
+    redraw_editor();
 }
 
 void set_buffer(Buffer *buf)
