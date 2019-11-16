@@ -205,6 +205,10 @@ void buffer_cursor_forward(Buffer *this)
 
     this->point = new_point;
 
+    this->content[this->gap_start] = this->content[this->gap_end];
+    ++(this->gap_start);
+    ++(this->gap_end);
+
     buffer_flush_cursor_position(this);
 }
 
@@ -236,6 +240,10 @@ void buffer_cursor_back(Buffer *this)
     }
     else
         --(this->cursor_x);
+
+    this->content[this->gap_end - 1] = this->content[this->gap_start - 1];
+    --(this->gap_start);
+    --(this->gap_end);
 
     this->point = new_point;
 
