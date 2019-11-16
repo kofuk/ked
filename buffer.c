@@ -48,6 +48,8 @@ Buffer *buffer_create(const char *path, const char *buf_name)
         buf_pos += (size_t)nread;
     }
 
+    close(fd);
+
     size_t n_lines = 0;
     for (size_t i = INIT_GAP_SIZE; i < fsize + INIT_GAP_SIZE; i++)
         if (content_buf[i] == '\n') n_lines++;
