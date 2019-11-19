@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "buffer.h"
+#include "editcommand.h"
 #include "keybind.h"
 #include "ui.h"
 #include "utilities.h"
@@ -11,7 +12,7 @@ static char key_buf[8];
 
 typedef struct BindingElement {
     char *key;
-    void (*func)(Buffer*);
+    EditCommand func;
     struct BindingElement *next;
 } BindingElement;
 
@@ -72,7 +73,7 @@ static char *key_compile(const char *key)
     return result;
 }
 
-static void keybind_add(Keybind *this, const char *key, void (*func)(Buffer*))
+static void keybind_add(Keybind *this, const char *key, EditCommand func)
 {
     BindingElement *e = malloc(sizeof(BindingElement));
     memset(e, 0, sizeof(BindingElement));
@@ -143,7 +144,7 @@ static int keybind_handle(Keybind *this, char *key, Buffer *buf)
         {
             if (strcmp(key, elem->key) == 0)
             {
-                elem->func(buf);
+                (*(elem->func))(buf);
 
                 return KEYBIND_HANDLED;
             }
@@ -166,14 +167,14 @@ static void init_global_keybind(void)
 {
     global_keybind = keybind_create();
 
-    keybind_add(global_keybind, "^[[C", buffer_cursor_forward);
-    keybind_add(global_keybind, "^[[D", buffer_cursor_back);
-    keybind_add(global_keybind, "^B", buffer_cursor_back);
-    keybind_add(global_keybind, "^F", buffer_cursor_forward);
-    keybind_add(global_keybind, "^H", buffer_delete_backward);
-    keybind_add(global_keybind, "^X^C", (void (*)(Buffer*))exit_editor);
-    keybind_add(global_keybind, "^X^S", (void (*)(Buffer*))buffer_save);
-    keybind_add(global_keybind, "\x7f", buffer_delete_backward);
+    keybind_add(global_keybind, "^[[C", ec_cursor_forward);
+    keybind_add(global_keybind, "^[[D", ec_cursor_back);
+    keybind_add(global_keybind, "^B", ec_cursor_back);
+    keybind_add(global_keybind, "^F", ec_cursor_forward);
+    keybind_add(global_keybind, "^H", ec_delete_backward);
+    keybind_add(global_keybind, "^X^C", ec_editor_quit);
+    keybind_add(global_keybind, "^X^S", ec_buffer_save);
+    keybind_add(global_keybind, "\x7f", ec_delete_backward);
 }
 
 void keybind_set_up(void)
