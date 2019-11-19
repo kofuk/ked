@@ -8,6 +8,8 @@ void exit_editor(void);
 
 void ui_set_up(void);
 
+void write_message(char*);
+
 void redraw_editor(void);
 
 void move_cursor_editor(unsigned int, unsigned int);

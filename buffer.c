@@ -79,6 +79,8 @@ Buffer *buffer_create(const char *path, const char *buf_name)
         return buffer_create_existing_file(path, buf_name, stat_buf);
     }
 
+    write_message("You opened nonexisiting file.");
+
     char *content_buf = malloc(sizeof(char) * INIT_GAP_SIZE);
 
     size_t path_len = strlen(path);
@@ -100,65 +102,6 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     result->n_lines = 0;
     result->cursor_x = 1;
     result->cursor_y = 1;
-
-    return result;
-}
-
-Range *buffer_line(Buffer *this, size_t lineno)
-{
-    if (lineno > this->n_lines) return NULL;
-
-    Range *result = malloc(sizeof(Range));
-    int searching_start = 1;
-    size_t l = 1;
-
-    for (size_t i = 0; i < this->buf_size; i++)
-    {
-        if (this->gap_start <= i && i <= this->gap_end) i = this->gap_end;
-
-        if (searching_start && l == lineno)
-        {
-            result->start = i;
-
-            searching_start = 0;
-        }
-
-        if (this->content[i] == '\n') ++l;
-
-        if (l > lineno)
-        {
-            result->end = i;
-            goto END;
-        }
-    }
-
-    result->end = this->buf_size;
-
-END:
-    return result;
-}
-
-String *buffer_string_range(Buffer *this, Range *r)
-{
-    // check if `r' is not point out of range.
-    if (r->start >= this->buf_size || r->end >= this->buf_size)
-        return NULL;
-
-    String *result;
-
-    if (r->start < this->gap_start && r->end > this->gap_end)
-    {
-        size_t size = r->end - r->start - (this->gap_end - this->gap_start);
-        result = string_create(NULL, size);
-        memcpy(result->buf, this->content + r->start, this->gap_start - r->start);
-        memcpy(result->buf + (this->gap_start + r->start), this->content + this->gap_end, r->end - this->gap_end);
-    }
-    else
-    {
-        size_t size = r->end - r->start;
-        result = string_create(NULL, size);
-        memcpy(result->buf, this->content + r->start, size);
-    }
 
     return result;
 }
@@ -205,7 +148,12 @@ static void buffer_update_cursor_position(Buffer *this)
 
 void buffer_cursor_forward(Buffer *this)
 {
-    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1) return;
+    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1)
+    {
+        write_message("End of buffer.");
+
+        return;
+    }
 
     ++(this->point);
 
@@ -219,7 +167,12 @@ void buffer_cursor_forward(Buffer *this)
 
 void buffer_cursor_back(Buffer *this)
 {
-    if (this->point == 0) return;
+    if (this->point == 0)
+    {
+        write_message("Beginning of buffer.");
+
+        return;
+    }
 
     --(this->point);
 
@@ -266,7 +219,12 @@ void buffer_insert(Buffer *this, char c)
 
 void buffer_delete_backward(Buffer *this)
 {
-    if (this->point == 0) return;
+    if (this->point == 0)
+    {
+        write_message("Beginning of buffer.");
+
+        return;
+    }
 
     --(this->gap_start);
     --(this->point);

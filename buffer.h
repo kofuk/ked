@@ -30,8 +30,6 @@ typedef struct
 Buffer *current_buffer;
 
 Buffer *buffer_create(const char*, const char*);
-Range *buffer_line(Buffer*, size_t);
-String *buffer_string_range(Buffer*, Range*);
 
 void buffer_cursor_forward(Buffer*);
 void buffer_cursor_back(Buffer*);

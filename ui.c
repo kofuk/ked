@@ -76,6 +76,14 @@ static void write_footer(char *msg)
     set_attr(TANONE);
 }
 
+void write_message(char *msg)
+{
+    write_footer(msg);
+
+    if (current_buffer != NULL)
+        move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
+}
+
 void ui_set_up(void)
 {
     write_header(NULL);
