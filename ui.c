@@ -4,7 +4,6 @@
 
 #include "buffer.h"
 #include "keybind.h"
-#include "string.h"
 #include "terminal.h"
 #include "ui.h"
 #include "utilities.h"

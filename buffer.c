@@ -9,10 +9,8 @@
 #include <unistd.h>
 
 #include "buffer.h"
-#include "string.h"
 #include "terminal.h"
 #include "ui.h"
-#include "utilities.h"
 
 #define POINT_TO_INDEX(buf, point, result)                                     \
     do {                                                                       \
@@ -203,7 +201,7 @@ void buffer_insert(Buffer *this, char c)
         this->gap_end += INIT_GAP_SIZE;
         this->buf_size += INIT_GAP_SIZE;
 
-        clear_buffer(old_buf, old_size);
+        memset(old_buf, 0, old_size);
         free(old_buf);
         old_buf = NULL;
     }

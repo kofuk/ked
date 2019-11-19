@@ -5,6 +5,4 @@
 
 char *itoa(unsigned int);
 
-void clear_buffer(char*, size_t);
-
 #endif

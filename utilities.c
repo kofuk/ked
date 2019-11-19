@@ -19,8 +19,3 @@ char *itoa(unsigned int num)
 
     return result;
 }
-
-void clear_buffer(char *buf, size_t n)
-{
-    for (size_t i =  0; i < n; i++) buf[i] = 0;
-}

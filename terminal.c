@@ -95,7 +95,7 @@ static void init_variables(void)
 
 static void tear_down_variable(void)
 {
-    clear_buffer(line_buffer, term_width + 1);
+    memset(line_buffer, 0, term_width + 1);
     free(line_buffer);
     line_buffer = NULL;
 }
