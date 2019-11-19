@@ -24,14 +24,8 @@
 
 Buffer *current_buffer;
 
-Buffer *buffer_create(const char *path, const char *buf_name)
+static Buffer *buffer_create_existing_file(const char *path, const char *buf_name, struct stat stat_buf)
 {
-    struct stat stat_buf;
-    if (stat(path, &stat_buf) != 0)
-    {
-        return NULL;
-    }
-
     int fd = open(path, O_RDONLY);
     if (fd < 0)
     {
@@ -71,6 +65,39 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
     result->n_lines = n_lines;
+    result->cursor_x = 1;
+    result->cursor_y = 1;
+
+    return result;
+}
+
+Buffer *buffer_create(const char *path, const char *buf_name)
+{
+    struct stat stat_buf;
+    if (stat(path, &stat_buf) == 0)
+    {
+        return buffer_create_existing_file(path, buf_name, stat_buf);
+    }
+
+    char *content_buf = malloc(sizeof(char) * INIT_GAP_SIZE);
+
+    size_t path_len = strlen(path);
+    char *path_buf = malloc(sizeof(char) * (path_len + 1));
+    memcpy(path_buf, path, path_len + 1);
+
+    size_t buf_name_len = strlen(buf_name);
+    char *buf_name_buf = malloc(sizeof(char) * (buf_name_len + 1));
+    memcpy(buf_name_buf, buf_name, buf_name_len + 1);
+
+    Buffer *result = malloc(sizeof(Buffer));
+    result->buf_name = buf_name_buf;
+    result->path = path_buf;
+    result->content = content_buf;
+    result->point = 0;
+    result->buf_size = INIT_GAP_SIZE;
+    result->gap_start = 0;
+    result->gap_end = INIT_GAP_SIZE;
+    result->n_lines = 0;
     result->cursor_x = 1;
     result->cursor_y = 1;
 
