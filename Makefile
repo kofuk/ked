@@ -1,6 +1,6 @@
 CFLAGS = -Wall -Wextra
 LDFLAGS = -lm
-OBJ = buffer.o main.o string.o terminal.o ui.o utilities.o
+OBJ = buffer.o keybind.o main.o string.o terminal.o ui.o utilities.o
 
 .PHONY: all
 all: $(OBJ)

@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "buffer.h"
+#include "keybind.h"
 #include "terminal.h"
 #include "ui.h"
 
@@ -41,6 +42,7 @@ int main(int argc, char **argv)
 
     term_set_up();
     ui_set_up();
+    keybind_set_up();
 
     Buffer *buf = buffer_create(argv[1], argv[1]);
 
@@ -51,6 +53,7 @@ int main(int argc, char **argv)
         editor_main_loop();
     }
 
+    keybind_tear_down();
     term_tear_down();
 
     return 0;

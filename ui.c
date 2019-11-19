@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "buffer.h"
+#include "keybind.h"
 #include "string.h"
 #include "terminal.h"
 #include "ui.h"
@@ -164,27 +165,7 @@ void editor_main_loop()
     {
         if (editor_exited) break;
 
-        char c = (char)tgetc();
-        if (c == KEY_ESC)
-        {
-            c = (char)tgetc();
-            if (c == '[')
-            {
-                c = (char)tgetc();
-                if (c == 'A') move_cursor(cursor_x, cursor_y - 1);
-                else if (c == 'B') move_cursor(cursor_x, cursor_y + 1);
-                else if (c == 'C') buffer_cursor_forward(current_buffer);
-                else if (c == 'D') buffer_cursor_back(current_buffer);
-            }
-        }
-        else {
-            if (c == 'q') exit_editor();
-
-            if (c == 's') buffer_save(current_buffer);
-
-            if (c == 8) buffer_delete_backward(current_buffer);
-            else buffer_insert(current_buffer, c);
-        }
+        handle_key((char)tgetc());
     }
 }
 
