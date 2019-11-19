@@ -1,9 +1,11 @@
 #include <fcntl.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <unistd.h>
 
 #include "buffer.h"
@@ -231,6 +233,64 @@ void buffer_delete_backward(Buffer *this)
 
     buffer_update_cursor_position(this);
     redraw_editor();
+}
+
+int buffer_save(Buffer *this)
+{
+    FILE *f = fopen(this->path, "w");
+    if (f == NULL)
+    {
+        write_message(strerror(errno));
+
+        return 0;
+    }
+
+    char buf[2048];
+
+    size_t n_in_buf = 0;
+    size_t i = 0;
+    while (i < this->buf_size)
+    {
+        if (this->gap_start <= i && i < this->gap_end)
+        {
+            i = this->gap_end;
+
+            if (i >= this->buf_size) break;
+
+            continue;
+        }
+
+        buf[n_in_buf] = this->content[i];
+        ++n_in_buf;
+        ++i;
+
+        if (n_in_buf == 2048)
+        {
+            if (fwrite(buf, 1, n_in_buf, f) < n_in_buf)
+            {
+                write_message(strerror(errno));
+                fclose(f);
+
+                return 0;
+            }
+
+            n_in_buf = 0;
+        }
+    }
+
+    if (fwrite(buf, 1, n_in_buf, f) < n_in_buf)
+    {
+        write_message(strerror(errno));
+        fclose(f);
+
+        return 0;
+    }
+
+    fclose(f);
+
+    write_message("Saved");
+
+    return 1;
 }
 
 void set_buffer(Buffer *buf)
