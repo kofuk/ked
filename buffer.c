@@ -111,50 +111,6 @@ END:
     return result;
 }
 
-static Range *buffer_line_at_point(Buffer *this, size_t point)
-{
-    size_t p = point;
-
-    size_t index;
-    POINT_TO_INDEX(this, p, index);
-
-    if (IS_OUT_OF_BOUNDS(this, index)) return NULL;
-
-    Range *result = malloc(sizeof(Range));
-
-    size_t tmp = p;
-
-    if (tmp > 0)
-    {
-        do {
-            --tmp;
-            POINT_TO_INDEX(this, tmp, index);
-
-            if (this->content[index] == '\n')
-            {
-                // to cope with the condition that point is on in beginning of buffer.
-                ++index;
-
-                break;
-            }
-        } while (index > 0 && tmp > 0);
-    }
-
-    result->start = index - 1;
-
-    while (!(IS_OUT_OF_BOUNDS(this, index)))
-    {
-        POINT_TO_INDEX(this, p, index);
-        if (this->content[index] == '\n') break;
-
-        ++p;
-    }
-
-    result->end = index;
-
-    return result;
-}
-
 String *buffer_string_range(Buffer *this, Range *r)
 {
     // check if `r' is not point out of range.
@@ -185,70 +141,66 @@ static void buffer_flush_cursor_position(Buffer *this)
     move_cursor_editor(this->cursor_x, this->cursor_y);
 }
 
+static void buffer_update_cursor_position(Buffer *this)
+{
+    unsigned int cursor_x = 1;
+    unsigned int cursor_y = 1;
+
+    size_t cursor_index;
+    POINT_TO_INDEX(this, this->point, cursor_index);
+
+    size_t i = 0;
+    while (i < this->buf_size && i < cursor_index)
+    {
+        if (this->gap_start <= i && i < this->gap_end)
+        {
+            i = this->gap_end + 1;
+
+            if (i >= this->buf_size) break;
+
+            continue;
+        }
+
+        ++cursor_x;
+
+        if (this->content[i] == '\n')
+        {
+            cursor_x = 1;
+            ++cursor_y;
+        }
+
+        ++i;
+    }
+
+    this->cursor_x = cursor_x;
+    this->cursor_y = cursor_y;
+}
+
 void buffer_cursor_forward(Buffer *this)
 {
-    size_t old_point = this->point;
-    size_t new_point = old_point + 1;
-    size_t old_i;
-    POINT_TO_INDEX(this, old_point, old_i);
-    size_t new_i;
-    POINT_TO_INDEX(this, new_point, new_i);
-    if (IS_OUT_OF_BOUNDS(this, new_i)) return;
+    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1) return;
 
-    if (this->content[old_i] == '\n')
-    {
-        this->cursor_x = 1;
-        ++(this->cursor_y);
-    }
-    else
-    {
-        ++(this->cursor_x);
-    }
-
-    this->point = new_point;
+    ++(this->point);
 
     this->content[this->gap_start] = this->content[this->gap_end];
     ++(this->gap_start);
     ++(this->gap_end);
 
+    buffer_update_cursor_position(this);
     buffer_flush_cursor_position(this);
 }
 
 void buffer_cursor_back(Buffer *this)
 {
-    size_t index;
-    POINT_TO_INDEX(this, this->point, index);
-    if (this->point == 0 || index == 0) return;
+    if (this->point == 0) return;
 
-    size_t new_point = this->point - 1;
-    POINT_TO_INDEX(this, new_point, index);
-
-    if (this->cursor_x == 1)
-    {
-        --(this->cursor_y);
-
-        Range *r = buffer_line_at_point(this, new_point);
-        String *line = buffer_string_range(this, r);
-        clear_buffer((char*)r, sizeof(Range));
-        free(r);
-        r = NULL;
-
-        if (line != NULL)
-        {
-            this->cursor_x = (unsigned int)line->length;
-
-            string_destruct(line);
-        }
-    }
-    else
-        --(this->cursor_x);
+    --(this->point);
 
     this->content[this->gap_end - 1] = this->content[this->gap_start - 1];
     --(this->gap_start);
     --(this->gap_end);
 
-    this->point = new_point;
-
+    buffer_update_cursor_position(this);
     buffer_flush_cursor_position(this);
 }
 
@@ -279,18 +231,9 @@ void buffer_insert(Buffer *this, char c)
     ++(this->gap_start);
     ++(this->point);
 
-    if (c == '\n')
-    {
-        ++(this->n_lines);
+    if (c == '\n') ++(this->n_lines);
 
-        this->cursor_x = 1;
-        ++(this->cursor_y);
-    }
-    else
-    {
-        ++(this->cursor_x);
-    }
-
+    buffer_update_cursor_position(this);
     redraw_editor();
 }
 
