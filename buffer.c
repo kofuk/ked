@@ -124,7 +124,7 @@ static void buffer_update_cursor_position(Buffer *this)
     {
         if (this->gap_start <= i && i < this->gap_end)
         {
-            i = this->gap_end + 1;
+            i = this->gap_end;
 
             if (i >= this->buf_size) break;
 
