@@ -37,6 +37,10 @@
 
 static int editor_exited;
 
+char **display_buffer;
+size_t display_width;
+size_t display_height;
+
 static void write_header(char *fname)
 {
     // move cursor to top-left.
@@ -76,6 +80,18 @@ void ui_set_up(void)
 {
     write_header(NULL);
     write_footer(NULL);
+
+    display_width = term_width;
+    display_height = term_height - 2;
+
+    display_buffer = malloc(sizeof(char*) * display_height);
+    for (size_t i = 0; i < display_height; i++)
+    {
+        display_buffer[i] = malloc(sizeof(char) * display_width);
+
+        for (size_t j = 0; j < display_width; j++)
+            display_buffer[i][j] = ' ';
+    }
 }
 
 void exit_editor()
@@ -85,24 +101,47 @@ void exit_editor()
 
 void redraw_editor(void)
 {
-    Range *r;
+    unsigned int x = 1;
+    unsigned int y = 1;
 
-    for (unsigned int i = 1; i <= UINT_MAX; i++)
+    size_t i = 0;
+    int c;
+    while (i < current_buffer->buf_size)
     {
-        r = buffer_line(current_buffer, (size_t)i);
-        if (r == NULL) break;
-
-        move_cursor(1, i + 1);
-
-        String *line = buffer_string_range(current_buffer, r);
-        if (line != NULL)
+        if (current_buffer->gap_start <= i && i < current_buffer->gap_end)
         {
-            append_to_line(line->buf);
-            string_destruct(line);
-        }
-        flush_line();
+            i = current_buffer->gap_end;
 
-        free(r);
+            if (i >= current_buffer->buf_size) break;
+            continue;
+        }
+
+        c = current_buffer->content[i];
+
+        if (c == '\n')
+        {
+            for (unsigned int j = x; j <= display_width; j++) DRAW_CHAR(' ', j, y);
+
+            ++y;
+            x = 1;
+        }
+        else
+        {
+            DRAW_CHAR(c, x, y);
+
+            ++x;
+        }
+
+        ++i;
+    }
+
+    for (unsigned int j = y; j <= display_height; j++)
+    {
+        for (unsigned int k = x; k <= display_width; k++)
+        {
+            DRAW_CHAR(' ', k, j);
+        }
+        x = 1;
     }
 
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
