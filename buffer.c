@@ -237,6 +237,17 @@ void buffer_insert(Buffer *this, char c)
     redraw_editor();
 }
 
+void buffer_delete_backward(Buffer *this)
+{
+    if (this->point == 0) return;
+
+    --(this->gap_start);
+    --(this->point);
+
+    buffer_update_cursor_position(this);
+    redraw_editor();
+}
+
 void set_buffer(Buffer *buf)
 {
     current_buffer = buf;

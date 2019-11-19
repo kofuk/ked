@@ -37,6 +37,8 @@ void buffer_cursor_forward(Buffer*);
 void buffer_cursor_back(Buffer*);
 
 void buffer_insert(Buffer*, char);
+void buffer_delete_backward(Buffer *);
+void buffer_delete_forward(Buffer*);
 
 void set_buffer(Buffer*);
 

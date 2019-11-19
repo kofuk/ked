@@ -172,7 +172,8 @@ void editor_main_loop()
         else {
             if (c == 'q') exit_editor();
 
-            buffer_insert(current_buffer, c);
+            if (c == 8) buffer_delete_backward(current_buffer);
+            else buffer_insert(current_buffer, c);
         }
     }
 }
