@@ -200,10 +200,10 @@ void handle_key(int c)
     {
     case KEYBIND_NOT_HANDLED:
         buffer_insert(current_buffer, (char)c);
+        write_message("");
         // fall through
     case KEYBIND_HANDLED:
         memset(key_buf, 0, sizeof(key_buf));
-        write_message("");
         break;
     case KEYBIND_WAIT:
         write_message("Waiting for next key...");
