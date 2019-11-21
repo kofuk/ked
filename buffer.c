@@ -44,10 +44,6 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
 
     close(fd);
 
-    size_t n_lines = 0;
-    for (size_t i = INIT_GAP_SIZE; i < fsize + INIT_GAP_SIZE; i++)
-        if (content_buf[i] == '\n') n_lines++;
-
     size_t path_len = strlen(path);
     char *path_buf = malloc(sizeof(char) * (path_len + 1));
     memcpy(path_buf, path, path_len + 1);
@@ -64,7 +60,6 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     result->buf_size = fsize + INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    result->n_lines = n_lines;
     result->modified = 0;
     result->cursor_x = 1;
     result->cursor_y = 1;
@@ -100,7 +95,6 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     result->buf_size = INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    result->n_lines = 0;
     result->modified = 1;
     result->cursor_x = 1;
     result->cursor_y = 1;
@@ -205,8 +199,6 @@ void buffer_insert(Buffer *this, char c)
 
     ++(this->gap_start);
     ++(this->point);
-
-    if (c == '\n') ++(this->n_lines);
 
     this->modified = 1;
 

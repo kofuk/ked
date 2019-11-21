@@ -16,7 +16,6 @@ typedef struct {
     size_t buf_size;
     size_t gap_start;
     size_t gap_end;
-    size_t n_lines;
     int modified;
     unsigned int cursor_x;
     unsigned int cursor_y;
