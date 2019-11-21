@@ -41,7 +41,7 @@ char **display_buffer;
 size_t display_width;
 size_t display_height;
 
-static void write_header(char *fname)
+static void update_header(char *fname)
 {
     // move cursor to top-left.
     // http://ascii-table.com/ansi-escape-sequences.php
@@ -61,34 +61,32 @@ static void write_header(char *fname)
     new_line();
 }
 
-static void write_footer(char *msg)
+static char *footer_buffer;
+
+static void update_footer(void)
 {
     move_cursor(1, (unsigned int)term_height);
 
     set_color(TCBLACK, TCWHITE);
 
-    if (msg != NULL)
-    {
-        append_to_line(" ");
-        append_to_line(msg);
-    }
-    flush_line();
+    for (size_t i = 0; i < display_width; i++)
+        tputc(footer_buffer[i]);
+
     set_attr(TANONE);
 }
 
 void write_message(char *msg)
 {
-    write_footer(msg);
+    footer_buffer[0] = ' ';
 
-    if (current_buffer != NULL)
-        move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
+    size_t len = strlen(msg);
+
+    for (size_t buf_i = 1; buf_i < display_width; buf_i++)
+        footer_buffer[buf_i] = buf_i - 1 < len ? msg[buf_i - 1] : ' ';
 }
 
 void ui_set_up(void)
 {
-    write_header(NULL);
-    write_footer(NULL);
-
     display_width = term_width;
     display_height = term_height - 2;
 
@@ -100,6 +98,9 @@ void ui_set_up(void)
         for (size_t j = 0; j < display_width; j++)
             display_buffer[i][j] = ' ';
     }
+
+    footer_buffer = malloc(sizeof(char) * display_width);
+    memset(footer_buffer, ' ', display_width);
 }
 
 void exit_editor()
@@ -157,12 +158,14 @@ void redraw_editor(void)
 
 void editor_main_loop()
 {
-    write_header(current_buffer->buf_name);
-    redraw_editor();
-
     for (;;)
     {
         if (editor_exited) break;
+
+        update_header(current_buffer->buf_name);
+        update_footer();
+
+        redraw_editor();
 
         handle_key((char)tgetc());
     }

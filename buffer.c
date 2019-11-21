@@ -108,11 +108,6 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     return result;
 }
 
-static void buffer_flush_cursor_position(Buffer *this)
-{
-    move_cursor_editor(this->cursor_x, this->cursor_y);
-}
-
 static void buffer_update_cursor_position(Buffer *this)
 {
     unsigned int cursor_x = 1;
@@ -164,7 +159,6 @@ void buffer_cursor_forward(Buffer *this)
     ++(this->gap_end);
 
     buffer_update_cursor_position(this);
-    buffer_flush_cursor_position(this);
 }
 
 void buffer_cursor_back(Buffer *this)
@@ -183,7 +177,6 @@ void buffer_cursor_back(Buffer *this)
     --(this->gap_end);
 
     buffer_update_cursor_position(this);
-    buffer_flush_cursor_position(this);
 }
 
 void buffer_insert(Buffer *this, char c)
@@ -218,7 +211,6 @@ void buffer_insert(Buffer *this, char c)
     this->modified = 1;
 
     buffer_update_cursor_position(this);
-    redraw_editor();
 }
 
 void buffer_delete_backward(Buffer *this)
@@ -234,7 +226,6 @@ void buffer_delete_backward(Buffer *this)
     --(this->point);
 
     buffer_update_cursor_position(this);
-    redraw_editor();
 }
 
 int buffer_save(Buffer *this)

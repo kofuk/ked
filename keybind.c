@@ -144,6 +144,7 @@ static int keybind_handle(Keybind *this, char *key, Buffer *buf)
         {
             if (strcmp(key, elem->key) == 0)
             {
+                write_message("");
                 (*(elem->func))(buf);
 
                 return KEYBIND_HANDLED;
@@ -200,7 +201,6 @@ void handle_key(int c)
     {
     case KEYBIND_NOT_HANDLED:
         buffer_insert(current_buffer, (char)c);
-        write_message("");
         // fall through
     case KEYBIND_HANDLED:
         memset(key_buf, 0, sizeof(key_buf));
