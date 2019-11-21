@@ -65,6 +65,7 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
     result->n_lines = n_lines;
+    result->modified = 0;
     result->cursor_x = 1;
     result->cursor_y = 1;
 
@@ -100,6 +101,7 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
     result->n_lines = 0;
+    result->modified = 1;
     result->cursor_x = 1;
     result->cursor_y = 1;
 
@@ -213,6 +215,8 @@ void buffer_insert(Buffer *this, char c)
 
     if (c == '\n') ++(this->n_lines);
 
+    this->modified = 1;
+
     buffer_update_cursor_position(this);
     redraw_editor();
 }
@@ -235,6 +239,13 @@ void buffer_delete_backward(Buffer *this)
 
 int buffer_save(Buffer *this)
 {
+    if (!this->modified)
+    {
+        write_message("Buffer is not modified.");
+
+        return 0;
+    }
+
     FILE *f = fopen(this->path, "w");
     if (f == NULL)
     {
