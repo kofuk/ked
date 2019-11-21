@@ -53,6 +53,7 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     memcpy(buf_name_buf, buf_name, buf_name_len + 1);
 
     Buffer *result = malloc(sizeof(Buffer));
+    memset(result, 0, sizeof(Buffer));
     result->buf_name = buf_name_buf;
     result->path = path_buf;
     result->content = content_buf;
@@ -88,6 +89,7 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     memcpy(buf_name_buf, buf_name, buf_name_len + 1);
 
     Buffer *result = malloc(sizeof(Buffer));
+    memset(result, 0, sizeof(Buffer));
     result->buf_name = buf_name_buf;
     result->path = path_buf;
     result->content = content_buf;
@@ -95,7 +97,23 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     result->buf_size = INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    result->modified = 1;
+    result->cursor_x = 1;
+    result->cursor_y = 1;
+
+    return result;
+}
+
+Buffer *buffer_create_system(const char *name)
+{
+    char *content_buf = malloc(sizeof(char) * INIT_GAP_SIZE);
+
+    Buffer *result = malloc(sizeof(Buffer));
+    memset(result, 0, sizeof(Buffer));
+    result->buf_name = strdup(name);
+    result->content = content_buf;
+    result->buf_size = INIT_GAP_SIZE;
+    result->gap_start = 0;
+    result->gap_end = INIT_GAP_SIZE;
     result->cursor_x = 1;
     result->cursor_y = 1;
 
@@ -283,9 +301,4 @@ int buffer_save(Buffer *this)
     write_message("Saved");
 
     return 1;
-}
-
-void set_buffer(Buffer *buf)
-{
-    current_buffer = buf;
 }

@@ -48,7 +48,9 @@ int main(int argc, char **argv)
 
     if (buf != NULL)
     {
-        set_buffer(buf);
+        set_buffer(buf, BUF_MAIN);
+        init_system_buffers();
+        select_buffer(buf);
 
         editor_main_loop();
     }

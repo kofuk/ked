@@ -37,70 +37,99 @@
 
 static int editor_exited;
 
+Buffer *current_buffer;
+Buffer **displayed_buffers;
+
 char **display_buffer;
-size_t display_width;
-size_t display_height;
+
+void set_buffer(Buffer *buf, enum BufferPosition pos)
+{
+    switch (pos) {
+    case BUF_HEADER:
+        buf->display_range_y_start = 1;
+        buf->display_range_y_end = 2;
+
+        displayed_buffers[0] = buf;
+
+        break;
+    case BUF_MAIN:
+        buf->display_range_y_start = 2;
+        buf->display_range_y_end = term_height;
+
+        displayed_buffers[1] = buf;
+
+        break;
+    case BUF_FOOTER:
+        buf->display_range_y_start = term_height;
+        buf->display_range_y_end = term_height + 1;
+
+        displayed_buffers[2] = buf;
+
+        break;
+    }
+}
+
+void init_system_buffers(void)
+{
+    Buffer *header = buffer_create_system("Header");
+    set_buffer(header, BUF_HEADER);
+
+    Buffer *footer = buffer_create_system("Footer");
+    set_buffer(footer, BUF_FOOTER);
+}
 
 static void update_header(char *fname)
 {
-    // move cursor to top-left.
-    // http://ascii-table.com/ansi-escape-sequences.php
-    move_cursor(1, 1);
+    Buffer *header = displayed_buffers[0];
 
-    if (fname != NULL)
-    {
-        append_to_line(" ");
-        append_to_line(fname);
-        append_to_line(" -");
-    }
+    if (fname == NULL)
+        fname = "UNTITLED";
 
-    set_color(TCBLACK, TCWHITE);
-    append_to_line(" KED");
-    flush_line();
-    set_attr(TANONE);
-    new_line();
+    size_t len = strlen(fname);
+    for (size_t i = 0; i < len; i++)
+        buffer_insert(header, fname[i]);
+
+    buffer_insert(header, ' ');
+
+    char *progname_section = "- KED";
+    len = strlen(progname_section);
+    for (size_t i = 0; i < len; i++)
+        buffer_insert(header, progname_section[i]);
 }
 
-static char *footer_buffer;
-
-static void update_footer(void)
+void select_buffer(Buffer *buf)
 {
-    move_cursor(1, (unsigned int)term_height);
-
-    set_color(TCBLACK, TCWHITE);
-
-    for (size_t i = 0; i < display_width; i++)
-        tputc(footer_buffer[i]);
-
-    set_attr(TANONE);
+    current_buffer = buf;
+    update_header(buf->buf_name);
 }
 
 void write_message(char *msg)
 {
-    footer_buffer[0] = ' ';
+    Buffer *footer = displayed_buffers[2];
+    //TODO: Don't touch struct member here.
+    footer->point = 0;
+    footer->gap_start = 0;
+    footer->gap_end = footer->buf_size;
 
+    buffer_insert(footer, ' ');
     size_t len = strlen(msg);
-
-    for (size_t buf_i = 1; buf_i < display_width; buf_i++)
-        footer_buffer[buf_i] = buf_i - 1 < len ? msg[buf_i - 1] : ' ';
+    for (size_t i = 0; i < len; i++)
+        buffer_insert(footer, msg[i]);
 }
 
 void ui_set_up(void)
 {
-    display_width = term_width;
-    display_height = term_height - 2;
-
-    display_buffer = malloc(sizeof(char*) * display_height);
-    for (size_t i = 0; i < display_height; i++)
+    display_buffer = malloc(sizeof(char*) * term_height);
+    for (size_t i = 0; i < term_height; i++)
     {
-        display_buffer[i] = malloc(sizeof(char) * display_width);
+        display_buffer[i] = malloc(sizeof(char) * term_width);
 
-        for (size_t j = 0; j < display_width; j++)
+        for (size_t j = 0; j < term_width; j++)
             display_buffer[i][j] = ' ';
     }
 
-    footer_buffer = malloc(sizeof(char) * display_width);
-    memset(footer_buffer, ' ', display_width);
+    displayed_buffers = malloc(sizeof(Buffer*) * 4);
+    memset(displayed_buffers, 0, sizeof(Buffer*) * 4);
 }
 
 void exit_editor()
@@ -113,44 +142,52 @@ void redraw_editor(void)
     unsigned int x = 1;
     unsigned int y = 1;
 
-    size_t i = 0;
+    size_t i;
     int c;
-    while (i < current_buffer->buf_size)
+    for (size_t b = 0; b < 3; b++)
     {
-        if (current_buffer->gap_start <= i && i < current_buffer->gap_end)
-        {
-            i = current_buffer->gap_end;
+        Buffer *buf = displayed_buffers[b];
 
-            if (i >= current_buffer->buf_size) break;
-            continue;
+        y = (unsigned int)buf->display_range_y_start;
+        i = 0;
+        while (i < buf->buf_size)
+        {
+            if (buf->gap_start <= i && i < buf->gap_end)
+            {
+                i = buf->gap_end;
+
+                if (i >= buf->buf_size) break;
+
+                continue;
+            }
+
+            c = buf->content[i];
+
+            if (c == '\n')
+            {
+                for (unsigned int j = x; j <= term_width; j++) DRAW_CHAR(' ', j, y);
+
+                ++y;
+
+                if (y > buf->display_range_y_end) break;
+
+                x = 1;
+            }
+            else
+            {
+                DRAW_CHAR((char)c, x, y);
+
+                ++x;
+            }
+
+            ++i;
         }
 
-        c = current_buffer->content[i];
-
-        if (c == '\n')
+        for (unsigned int j = y; j < buf->display_range_y_end; j++)
         {
-            for (unsigned int j = x; j <= display_width; j++) DRAW_CHAR(' ', j, y);
-
-            ++y;
+            for (unsigned int k = x; k <= term_width; k++) DRAW_CHAR(' ', k, j);
             x = 1;
         }
-        else
-        {
-            DRAW_CHAR(c, x, y);
-
-            ++x;
-        }
-
-        ++i;
-    }
-
-    for (unsigned int j = y; j <= display_height; j++)
-    {
-        for (unsigned int k = x; k <= display_width; k++)
-        {
-            DRAW_CHAR(' ', k, j);
-        }
-        x = 1;
     }
 
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
@@ -162,8 +199,8 @@ void editor_main_loop()
     {
         if (editor_exited) break;
 
-        update_header(current_buffer->buf_name);
-        update_footer();
+//        update_header(current_buffer->buf_name);
+//        update_footer();
 
         redraw_editor();
 

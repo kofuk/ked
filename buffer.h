@@ -16,6 +16,8 @@ typedef struct {
     size_t buf_size;
     size_t gap_start;
     size_t gap_end;
+    size_t display_range_y_start; /* inclusige */
+    size_t display_range_y_end;   /* exclusive */
     int modified;
     unsigned int cursor_x;
     unsigned int cursor_y;
@@ -27,9 +29,8 @@ typedef struct
     size_t end;                 /* exclusive */
 } Range;
 
-Buffer *current_buffer;
-
-Buffer *buffer_create(const char*, const char*);
+Buffer *buffer_create(const char *, const char *);
+Buffer *buffer_create_system(const char *);
 
 void buffer_cursor_forward(Buffer*);
 void buffer_cursor_back(Buffer*);
@@ -39,7 +40,5 @@ void buffer_delete_backward(Buffer*);
 void buffer_delete_forward(Buffer*);
 
 int buffer_save(Buffer*);
-
-void set_buffer(Buffer*);
 
 #endif
