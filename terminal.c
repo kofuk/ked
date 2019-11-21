@@ -116,8 +116,7 @@ void term_set_up()
     // save old attibutes to restore the attributes before exit.
     orig_termios = new_termios;
 
-    new_termios.c_iflag &= ~(IXOFF);
-    new_termios.c_iflag &= IGNCR;
+    new_termios.c_iflag &= ~(IXOFF | IGNCR);
 
     // set noncanonical mode, no echo, etc.
     new_termios.c_lflag &= ~(ISIG | ICANON | ECHO | FLUSHO);
