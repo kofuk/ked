@@ -136,6 +136,15 @@ Buffer *buffer_create_system(const char *name)
     return result;
 }
 
+void buffer_destruct(Buffer *this)
+{
+    free(this->buf_name);
+    free(this->path);
+    free(this->content);
+
+    free(this);
+}
+
 static void buffer_update_cursor_position(Buffer *this)
 {
     unsigned int cursor_x = 1;

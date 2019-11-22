@@ -148,6 +148,19 @@ void ui_set_up(void)
     memset(displayed_buffers, 0, sizeof(Buffer*) * 4);
 }
 
+void ui_tear_down(void)
+{
+    for (size_t i = 0; i < 3; i++)
+        buffer_destruct(displayed_buffers[i]);
+    free(displayed_buffers);
+
+    for (size_t i = 0; i < term_height; i++)
+    {
+        free(display_buffer[i]);
+    }
+    free(display_buffer);
+}
+
 void exit_editor()
 {
     editor_exited = 1;

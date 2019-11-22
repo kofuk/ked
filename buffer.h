@@ -59,6 +59,8 @@ typedef struct {
 Buffer *buffer_create(const char *, const char *);
 /* Creates system buffer with name of 2nd argument. */
 Buffer *buffer_create_system(const char *);
+/* Frees the buffer. */
+void buffer_destruct(Buffer *);
 
 /* Moves cursor for 1 character to forward. */
 void buffer_cursor_forward(Buffer *);

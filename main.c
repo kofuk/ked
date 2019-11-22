@@ -71,6 +71,7 @@ int main(int argc, char **argv)
     }
 
     keybind_tear_down();
+    ui_tear_down();
     term_tear_down();
 
     return 0;
