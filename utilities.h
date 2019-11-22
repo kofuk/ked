@@ -19,6 +19,7 @@
 
 #include <stddef.h>
 
+/* converts unsigned int to string. */
 char *itoa(unsigned int);
 
 #endif

@@ -215,9 +215,6 @@ void editor_main_loop()
     {
         if (editor_exited) break;
 
-//        update_header(current_buffer->buf_name);
-//        update_footer();
-
         redraw_editor();
 
         handle_key((char)tgetc());

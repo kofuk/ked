@@ -17,9 +17,12 @@
 #ifndef KEYBIND_H
 #define KEYBIND_H
 
+/* Initializes local variables that needed for key bind handling, and global key bind. */
 void keybind_set_up(void);
+/* Frees allocated for key bind handling. */
 void keybind_tear_down(void);
 
+/* Handles key input or buffers the key for next input. */
 void handle_key(int c);
 
 #endif

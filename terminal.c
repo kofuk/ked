@@ -28,12 +28,6 @@ static struct termios orig_termios;
 size_t term_width;
 size_t term_height;
 
-static char *line_buffer;
-static size_t line_buffer_pos;
-
-unsigned int cursor_x;
-unsigned int cursor_y;
-
 void tputc(int c)
 {
     char buf[1];
@@ -43,41 +37,6 @@ void tputc(int c)
 }
 
 void tputs(char *s) { write(1, s, strlen(s)); }
-
-size_t append_to_line(char *s)
-{
-    unsigned int len = (unsigned int)strlen(s);
-
-    if (len + line_buffer_pos > term_width)
-    {
-        size_t ncopy = term_width - line_buffer_pos;
-        strncpy(line_buffer + line_buffer_pos, s, ncopy);
-        line_buffer_pos = term_width;
-
-        return ncopy;
-    }
-
-    strcpy(line_buffer + line_buffer_pos, s);
-    line_buffer_pos += len;
-
-    return len;
-}
-
-void flush_line(void)
-{
-    // fill remaining columns with space to make background coloring work fine.
-    for (size_t i = line_buffer_pos; i < term_width; i++)
-        line_buffer[i] = ' ';
-
-    tputs(line_buffer);
-
-    line_buffer_pos = 0;
-}
-
-void new_line(void)
-{
-    tputs("\r\n");
-}
 
 int tgetc(void)
 {
@@ -102,17 +61,6 @@ static void init_variables(void)
 
     term_width = (size_t)w.ws_col;
     term_height = (size_t)w.ws_row;
-
-    line_buffer = malloc(sizeof(char) * (term_width + 1));
-    line_buffer[term_width] = 0;
-    line_buffer_pos = 0;
-}
-
-static void tear_down_variable(void)
-{
-    memset(line_buffer, 0, term_width + 1);
-    free(line_buffer);
-    line_buffer = NULL;
 }
 
 void term_set_up()
@@ -156,16 +104,12 @@ void term_tear_down()
     esc_write("[?47l");
     // restore cursor position.
     esc_write("8");
-
-    tear_down_variable();
 }
 
 
 
 void move_cursor(unsigned int x, unsigned int y)
 {
-    cursor_x = x;
-    cursor_y = y;
     esc_write("[");
     char *line = itoa(y);
     tputs(line);

@@ -19,42 +19,61 @@
 
 #include <stddef.h>
 
-#include "string.h"
-
+/* Amont of buffer allocate once.  */
 #define INIT_GAP_SIZE 1024
+/* Allocates additional buffer when gap is smaller than MIN_GAP_SIZE. */
 #define MIN_GAP_SIZE 32
 
+/* Buffer struct defines editing buffer for each file. every edit event take
+ * place on buffer, rather than UI. */
 typedef struct {
+    /* Buffer name to be displayed. */
     char *buf_name;
+    /* Buffer file path to be saved. */
     char *path;
+    /* The content of buffer includes gap. */
     char *content;
+    /* Cursor position in this buffer excluding gap area. */
     size_t point;
+    /* Buffer size including gap. */
     size_t buf_size;
+    /* Start index of gap in this buffer. Inclusive. */
     size_t gap_start;
+    /* End index of gap in this buffer. Exclusive */
     size_t gap_end;
-    size_t display_range_y_start; /* inclusige */
-    size_t display_range_y_end;   /* exclusive */
+    /* Beginning of display area that this buffer can be displayed. Inclusive.
+     */
+    size_t display_range_y_start;
+    /* End of display area that this buffer can be displayed. Exclusive. */
+    size_t display_range_y_end;
+    /* Whether this buffer is modified of not. */
     int modified;
+    /* Cursor X position in display area. */
     unsigned int cursor_x;
+    /* Cursor Y position in display area. */
     unsigned int cursor_y;
 } Buffer;
 
-typedef struct
-{
-    size_t start;               /* inclusive */
-    size_t end;                 /* exclusive */
-} Range;
-
+/* Creates buffer for the path, specified in 1st argument, with name of 2nd
+ * argument. If file is not exisiting, ked creates the file when saved. */
 Buffer *buffer_create(const char *, const char *);
+/* Creates system buffer with name of 2nd argument. */
 Buffer *buffer_create_system(const char *);
 
-void buffer_cursor_forward(Buffer*);
-void buffer_cursor_back(Buffer*);
+/* Moves cursor for 1 character to forward. */
+void buffer_cursor_forward(Buffer *);
+/* Moves cursor for 1 character to backward. */
+void buffer_cursor_back(Buffer *);
 
-void buffer_insert(Buffer*, char);
-void buffer_delete_backward(Buffer*);
-void buffer_delete_forward(Buffer*);
+/* Insertes character to buffer point position. */
+void buffer_insert(Buffer *, char);
+/* Deletes 1 character backward. */
+void buffer_delete_backward(Buffer *);
+/* Deletes 1 character forward. */
+void buffer_delete_forward(Buffer *);
 
-int buffer_save(Buffer*);
+/* Saves buffer to buffer file path. On success, this returns 1, and on failure,
+ * returns 0. */
+int buffer_save(Buffer *);
 
 #endif

@@ -19,22 +19,20 @@
 
 #include <stddef.h>
 
+/* Initializes terminal for editor functionally. */
 void term_set_up(void);
+/* Restores original terminal settings. */
 void term_tear_down(void);
 
 extern size_t term_width;
 extern size_t term_height;
 
-extern unsigned int cursor_x;
-extern unsigned int cursor_y;
-
+/* Write 1 byte to the terminal. */
 void tputc(int);
-void tputs(char *);
+/* Reads 1 byte from stdin and return the value casting to int. */
 int tgetc(void);
-size_t append_to_line(char*);
-void flush_line(void);
-void new_line(void);
-void esc_write(char*);
+/* Writes escape sequence to the terminal. */
+void esc_write(char *);
 
 void move_cursor(unsigned int, unsigned int);
 
