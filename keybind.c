@@ -53,11 +53,9 @@ static void keybind_destruct(Keybind *this)
         current = next;
         next = current->next;
 
-        memset(current, 0, sizeof(BindingElement));
         free(current);
     }
 
-    memset(this, 0, sizeof(Keybind));
     free(this);
 }
 
@@ -107,7 +105,6 @@ static void keybind_add(Keybind *this, const char *key, EditCommand func)
     if (cmp == 0)
     {
         e->next = this->bind->next;
-        memset(this->bind, 0, sizeof(BindingElement));
         free(this->bind);
         this->bind = e;
 
@@ -137,7 +134,6 @@ static void keybind_add(Keybind *this, const char *key, EditCommand func)
     {
         prev->next = e;
         e->next = next->next;
-        memset(next, 0, sizeof(BindingElement));
         free(next);
     }
     else

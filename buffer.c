@@ -217,14 +217,12 @@ void buffer_insert(Buffer *this, char c)
                this->content + this->gap_end, this->buf_size - this->gap_end);
 
         char *old_buf = this->content;
-        size_t old_size = this->buf_size;
 
         this->content = new_buf;
 
         this->gap_end += INIT_GAP_SIZE;
         this->buf_size += INIT_GAP_SIZE;
 
-        memset(old_buf, 0, old_size);
         free(old_buf);
         old_buf = NULL;
     }
