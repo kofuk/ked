@@ -82,4 +82,9 @@ void buffer_delete_forward(Buffer *);
  * returns 0. */
 int buffer_save(Buffer *);
 
+#define BUFFER_GET_CHAR(buf, point)                             \
+    (buf->gap_start <= point                                    \
+     ? buf->content[point + (buf->gap_end - buf->gap_start)]    \
+     : buf->content[point])
+
 #endif

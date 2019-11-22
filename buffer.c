@@ -28,16 +28,6 @@
 #include "terminal.h"
 #include "ui.h"
 
-#define POINT_TO_INDEX(buf, point, result)                                     \
-    do {                                                                       \
-        if (point >= buf->gap_start)                                           \
-            result = point + (buf->gap_end - buf->gap_start);                  \
-        else                                                                   \
-            result = point;                                                    \
-    } while (0)
-
-#define IS_OUT_OF_BOUNDS(buf, index) index >= buf->buf_size
-
 Buffer *current_buffer;
 
 static Buffer *buffer_create_existing_file(const char *path, const char *buf_name, struct stat stat_buf)
@@ -213,24 +203,19 @@ static void buffer_update_cursor_position(Buffer *this)
     unsigned int cursor_x = 1;
     unsigned int cursor_y = 1;
 
-    size_t cursor_index;
-    POINT_TO_INDEX(this, this->point, cursor_index);
-
     size_t i = 0;
-    while (i < this->buf_size && i < cursor_index)
+    while (i < this->buf_size - (this->gap_end - this->gap_start) && i < this->point)
     {
-        if (this->gap_start <= i && i < this->gap_end)
-        {
-            i = this->gap_end;
-
-            if (i >= this->buf_size) break;
-
-            continue;
-        }
-
         ++cursor_x;
 
-        if (this->content[i] == '\n')
+        if (BUFFER_GET_CHAR(this, i) == '\n')
+        {
+            cursor_x = 1;
+            ++cursor_y;
+        }
+        else if (cursor_x >= term_width
+            && i + 1 < this->buf_size - (this->gap_end - this->gap_start)
+            && BUFFER_GET_CHAR(this, i + 1) != '\n')
         {
             cursor_x = 1;
             ++cursor_y;

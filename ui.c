@@ -179,18 +179,9 @@ void redraw_editor(void)
 
         y = (unsigned int)buf->display_range_y_start;
         i = 0;
-        while (i < buf->buf_size)
+        while (i < buf->buf_size - (buf->gap_end - buf->gap_start))
         {
-            if (buf->gap_start <= i && i < buf->gap_end)
-            {
-                i = buf->gap_end;
-
-                if (i >= buf->buf_size) break;
-
-                continue;
-            }
-
-            c = buf->content[i];
+            c = BUFFER_GET_CHAR(buf, i);
 
             if (c == '\n')
             {
@@ -207,6 +198,15 @@ void redraw_editor(void)
                 DRAW_CHAR((char)c, x, y);
 
                 ++x;
+
+                if (x == term_width
+                    && i + 1 < buf->buf_size - (buf->gap_end - buf->gap_start)
+                    && BUFFER_GET_CHAR(buf, i + 1) != '\n')
+                {
+                    DRAW_CHAR('\\', x, y);
+                    x = 1;
+                    ++y;
+                }
             }
 
             ++i;
