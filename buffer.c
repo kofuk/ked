@@ -49,16 +49,77 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     }
 
     size_t fsize = (size_t)stat_buf.st_size;
-    char *content_buf = malloc(sizeof(char) * (fsize + INIT_GAP_SIZE));
+    char *tmp_buf = malloc(sizeof(char) * (fsize + INIT_GAP_SIZE));
     size_t buf_pos = INIT_GAP_SIZE;
     size_t read_size = fsize > 0xffff000 ? 0xffff000 : fsize;
     ssize_t nread;
-    while ((nread = read(fd, content_buf + buf_pos, read_size)) > 0)
-    {
+    while ((nread = read(fd, tmp_buf + buf_pos, read_size)) > 0)
         buf_pos += (size_t)nread;
-    }
 
     close(fd);
+
+    size_t nlf = 0, ncr = 0, ncrlf = 0;
+    int prev_cr = 0;
+    for (size_t i = INIT_GAP_SIZE; i < fsize + INIT_GAP_SIZE; i++)
+    {
+        switch (tmp_buf[i]) {
+        case '\n':
+            if (prev_cr)
+            {
+                ++ncrlf;
+                prev_cr = 0;
+            }
+            else
+            {
+                ++nlf;
+            }
+            break;
+        case '\r':
+                if (prev_cr) ++ncr;
+                prev_cr = 1;
+                break;
+        default:
+            if (prev_cr)
+            {
+                ++ncr;
+                prev_cr = 0;
+            }
+            break;
+        }
+    }
+    if (prev_cr) ++ncr;
+
+    size_t orig_fsize = fsize;
+    fsize -= ncrlf;
+    char *content_buf = malloc(sizeof(char) * (INIT_GAP_SIZE + fsize));
+
+    buf_pos = INIT_GAP_SIZE;
+    prev_cr = 0;
+    for (size_t i = INIT_GAP_SIZE; i < orig_fsize + INIT_GAP_SIZE; i++)
+    {
+        switch (tmp_buf[i]) {
+        case '\n':
+            if (!prev_cr)
+            {
+                content_buf[buf_pos] = tmp_buf[i];
+                prev_cr = 0;
+                ++buf_pos;
+            }
+            break;
+        case '\r':
+            content_buf[buf_pos] = '\n';
+            prev_cr = 1;
+            ++buf_pos;
+            break;
+        default:
+            content_buf[buf_pos] = tmp_buf[i];
+            prev_cr = 0;
+            ++buf_pos;
+            break;
+        }
+    }
+
+    free(tmp_buf);
 
     size_t path_len = strlen(path);
     char *path_buf = malloc(sizeof(char) * (path_len + 1));
@@ -77,6 +138,8 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     result->buf_size = fsize + INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
+    if (ncr > nlf && ncr > ncrlf) result->line_ending = LEND_CR;
+    else if (ncrlf > nlf && ncrlf > ncr) result->line_ending = LEND_CRLF;
     result->modified = 0;
     result->cursor_x = 1;
     result->cursor_y = 1;
@@ -282,6 +345,7 @@ int buffer_save(Buffer *this)
 
     size_t n_in_buf = 0;
     size_t i = 0;
+    int wait_lf = 0;
     while (i < this->buf_size)
     {
         if (this->gap_start <= i && i < this->gap_end)
@@ -293,8 +357,40 @@ int buffer_save(Buffer *this)
             continue;
         }
 
-        buf[n_in_buf] = this->content[i];
-        ++n_in_buf;
+        if (wait_lf)
+        {
+            buf[n_in_buf] = '\n';
+            wait_lf = 0;
+        }
+
+        if (this->line_ending != LEND_LF && this->content[i] == '\n')
+        {
+            if (this->line_ending == LEND_CR)
+            {
+                buf[n_in_buf] = '\r';
+                ++n_in_buf;
+            }
+            else if (this->line_ending == LEND_CRLF)
+            {
+                buf[n_in_buf] = '\r';
+                ++n_in_buf;
+                if (n_in_buf == 2048)
+                {
+                    wait_lf = 1;
+                }
+                else
+                {
+                    buf[n_in_buf] = '\n';
+                    ++n_in_buf;
+                }
+            }
+        }
+        else
+        {
+            buf[n_in_buf] = this->content[i];
+            ++n_in_buf;
+        }
+
         ++i;
 
         if (n_in_buf == 2048)

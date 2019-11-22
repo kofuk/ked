@@ -24,6 +24,8 @@
 /* Allocates additional buffer when gap is smaller than MIN_GAP_SIZE. */
 #define MIN_GAP_SIZE 32
 
+enum LineEnding { LEND_LF, LEND_CR, LEND_CRLF };
+
 /* Buffer struct defines editing buffer for each file. every edit event take
  * place on buffer, rather than UI. */
 typedef struct {
@@ -41,6 +43,8 @@ typedef struct {
     size_t gap_start;
     /* End index of gap in this buffer. Exclusive */
     size_t gap_end;
+    /* Line ending character for this file. */
+    enum LineEnding line_ending;
     /* Beginning of display area that this buffer can be displayed. Inclusive.
      */
     size_t display_range_y_start;
