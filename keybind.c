@@ -133,7 +133,6 @@ static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
             if (strcmp(key, elem->key) == 0) {
                 write_message("");
                 (*(elem->func))(buf);
-                memset(key_buf, 0, sizeof(key_buf));
 
                 return KEYBIND_HANDLED;
             }
@@ -144,11 +143,7 @@ static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
         elem = elem->next;
     }
 
-    if (strlen(key_buf) != 1) {
-        memset(key_buf, 0, sizeof(key_buf));
-
-        return KEYBIND_HANDLED;
-    }
+    if (strlen(key_buf) != 1) return KEYBIND_HANDLED;
 
     return KEYBIND_NOT_HANDLED;
 }
@@ -191,6 +186,7 @@ void handle_key(int c) {
         buffer_insert(current_buffer, (char)c);
         // fall through
     case KEYBIND_HANDLED:
+        memset(key_buf, 0, sizeof(key_buf));
         break;
     case KEYBIND_WAIT:
         write_message("Waiting for next key...");
