@@ -143,11 +143,14 @@ static void keybind_add(Keybind *this, const char *key, EditCommand func)
     }
 }
 
-#define KEYBIND_NOT_HANDLED 0
-#define KEYBIND_HANDLED 1
-#define KEYBIND_WAIT 2
+enum KeyBindState {
+    KEYBIND_NOT_HANDLED,
+    KEYBIND_HANDLED,
+    KEYBIND_WAIT
+}
 
-static int keybind_handle(Keybind *this, char *key, Buffer *buf)
+static enum KeyBindState
+keybind_handle(Keybind *this, char *key, Buffer *buf)
 {
     BindingElement *elem = this->bind;
     while (elem != NULL)
