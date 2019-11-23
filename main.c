@@ -51,14 +51,16 @@ int main(int argc, char **argv) {
     }
 
     term_set_up();
+
     ui_set_up();
+    init_system_buffers();
+
     keybind_set_up();
 
     Buffer *buf = buffer_create(argv[1], argv[1]);
 
     if (buf != NULL) {
         set_buffer(buf, BUF_MAIN);
-        init_system_buffers();
         select_buffer(buf);
 
         editor_main_loop();
