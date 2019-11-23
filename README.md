@@ -5,7 +5,7 @@ ked is simple console text editor for GNU/Linux, compilable with minimal depende
 ## Goal
 
 Though this is my hobby project, I would like to make this text editor easy-to-use for
-Emacs user and beginner of console text editor.
+both Emacs user and beginner of console text editor.
 
 ## Install
 
@@ -15,4 +15,4 @@ somewhere you set in `PATH`, to use this command anywhere.
 
 ## Copyright
 
-Written by Koki Fukuda, and licensed under the GNU General Public License version 3 or later.
+Written by Koki Fukuda. See COPYING in the project root for license statement.
