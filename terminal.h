@@ -36,4 +36,7 @@ void esc_write(char *);
 
 void move_cursor(unsigned int, unsigned int);
 
+/* Send SIGSTOP to process. */
+void stop_editor(void);
+
 #endif

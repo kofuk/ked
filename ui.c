@@ -203,6 +203,14 @@ void redraw_editor(void) {
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
 }
 
+void force_redraw_editor(void) {
+    for (size_t i = 0; i < term_height; ++i) {
+        memset(display_buffer[i], ' ', term_width);
+    }
+
+    redraw_editor();
+}
+
 void editor_main_loop() {
     for (;;) {
         if (editor_exited) break;

@@ -16,19 +16,24 @@
 
 #include "editcommand.h"
 #include "buffer.h"
+#include "terminal.h"
 #include "ui.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-void ec_cursor_forward(EDIT_COMMAND_ARG_LIST) { buffer_cursor_forward(buf); }
+DEFINE_EDIT_COMMAND(cursor_forward) { buffer_cursor_forward(buf); }
 
-void ec_cursor_back(EDIT_COMMAND_ARG_LIST) { buffer_cursor_back(buf); }
+DEFINE_EDIT_COMMAND(cursor_back) { buffer_cursor_back(buf); }
 
-void ec_delete_backward(EDIT_COMMAND_ARG_LIST) { buffer_delete_backward(buf); }
+DEFINE_EDIT_COMMAND(delete_backward) { buffer_delete_backward(buf); }
 
-void ec_buffer_save(EDIT_COMMAND_ARG_LIST) { buffer_save(buf); }
+DEFINE_EDIT_COMMAND(buffer_save) { buffer_save(buf); }
 
-void ec_editor_quit(EDIT_COMMAND_ARG_LIST) { exit_editor(); }
+DEFINE_EDIT_COMMAND(editor_quit) { exit_editor(); }
+
+DEFINE_EDIT_COMMAND(display_way_of_quit) { write_message("Ctrl+Q to quit."); }
+
+DEFINE_EDIT_COMMAND(process_stop) {stop_editor();}
 
 #pragma GCC diagnostic pop

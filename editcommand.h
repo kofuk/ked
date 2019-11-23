@@ -21,12 +21,16 @@
 
 #define EDIT_COMMAND_ARG_LIST Buffer *buf
 
+#define DEFINE_EDIT_COMMAND(name) void ec_##name(EDIT_COMMAND_ARG_LIST)
+
 typedef void (*EditCommand)(EDIT_COMMAND_ARG_LIST);
 
-void ec_cursor_forward(EDIT_COMMAND_ARG_LIST);
-void ec_cursor_back(EDIT_COMMAND_ARG_LIST);
-void ec_delete_backward(EDIT_COMMAND_ARG_LIST);
-void ec_buffer_save(EDIT_COMMAND_ARG_LIST);
-void ec_editor_quit(EDIT_COMMAND_ARG_LIST);
+DEFINE_EDIT_COMMAND(cursor_forward);
+DEFINE_EDIT_COMMAND(cursor_back);
+DEFINE_EDIT_COMMAND(delete_backward);
+DEFINE_EDIT_COMMAND(buffer_save);
+DEFINE_EDIT_COMMAND(editor_quit);
+DEFINE_EDIT_COMMAND(display_way_of_quit);
+DEFINE_EDIT_COMMAND(process_stop);
 
 #endif

@@ -133,6 +133,7 @@ static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
             if (strcmp(key, elem->key) == 0) {
                 write_message("");
                 (*(elem->func))(buf);
+                memset(key_buf, 0, sizeof(key_buf));
 
                 return KEYBIND_HANDLED;
             }
@@ -143,7 +144,11 @@ static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
         elem = elem->next;
     }
 
-    if (strlen(key_buf) != 1) return KEYBIND_HANDLED;
+    if (strlen(key_buf) != 1) {
+        memset(key_buf, 0, sizeof(key_buf));
+
+        return KEYBIND_HANDLED;
+    }
 
     return KEYBIND_NOT_HANDLED;
 }
@@ -156,10 +161,13 @@ static void init_global_keybind(void) {
     keybind_add(global_keybind, "^[[C", ec_cursor_forward);
     keybind_add(global_keybind, "^[[D", ec_cursor_back);
     keybind_add(global_keybind, "^B", ec_cursor_back);
+    keybind_add(global_keybind, "^C", ec_display_way_of_quit);
     keybind_add(global_keybind, "^F", ec_cursor_forward);
     keybind_add(global_keybind, "^H", ec_delete_backward);
+    keybind_add(global_keybind, "^Q", ec_editor_quit);
     keybind_add(global_keybind, "^X^C", ec_editor_quit);
     keybind_add(global_keybind, "^X^S", ec_buffer_save);
+    keybind_add(global_keybind, "^Z", ec_process_stop);
     keybind_add(global_keybind, "\x7f", ec_delete_backward);
 }
 
@@ -183,7 +191,6 @@ void handle_key(int c) {
         buffer_insert(current_buffer, (char)c);
         // fall through
     case KEYBIND_HANDLED:
-        memset(key_buf, 0, sizeof(key_buf));
         break;
     case KEYBIND_WAIT:
         write_message("Waiting for next key...");

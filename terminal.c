@@ -14,13 +14,16 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
 
 #include "terminal.h"
+#include "ui.h"
 #include "utilities.h"
 
 static struct termios orig_termios;
@@ -112,4 +115,17 @@ void move_cursor(unsigned int x, unsigned int y) {
     free(col);
     col = NULL;
     tputs("f");
+}
+
+static void resume_editor(int signal) {
+    term_set_up();
+
+    force_redraw_editor();
+}
+
+void stop_editor(void) {
+    term_tear_down();
+    signal(SIGCONT, resume_editor);
+
+    kill(0, SIGSTOP);
 }
