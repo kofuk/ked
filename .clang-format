@@ -1,0 +1,6 @@
+BasedOnStyle: LLVM
+AlignEscapedNewlines: Left
+AllowShortIfStatementsOnASingleLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BreakBeforeBraces: Attach
+IndentWidth: 4

@@ -36,20 +36,17 @@ typedef struct Keybind {
     BindingElement *bind;
 } Keybind;
 
-static Keybind *keybind_create(void)
-{
+static Keybind *keybind_create(void) {
     Keybind *result = malloc(sizeof(Keybind));
     memset(result, 0, sizeof(Keybind));
 
     return result;
 }
 
-static void keybind_destruct(Keybind *this)
-{
+static void keybind_destruct(Keybind *this) {
     BindingElement *current;
     BindingElement *next = this->bind;
-    while (next != NULL)
-    {
+    while (next != NULL) {
         current = next;
         next = current->next;
 
@@ -59,8 +56,7 @@ static void keybind_destruct(Keybind *this)
     free(this);
 }
 
-static char *key_compile(const char *key)
-{
+static char *key_compile(const char *key) {
     size_t pattern_len = strlen(key);
     size_t len = pattern_len;
 
@@ -70,15 +66,11 @@ static char *key_compile(const char *key)
     char *result = malloc(sizeof(char) * len + 1);
     size_t r_i = 0;
     result[len] = 0;
-    for (size_t i = 0; i < pattern_len; i++)
-    {
-        if (key[i] == '^' && i != pattern_len - 1)
-        {
+    for (size_t i = 0; i < pattern_len; i++) {
+        if (key[i] == '^' && i != pattern_len - 1) {
             result[r_i] = key[i + 1] - '@';
             ++i;
-        }
-        else
-        {
+        } else {
             result[r_i] = key[i];
         }
         ++r_i;
@@ -87,31 +79,26 @@ static char *key_compile(const char *key)
     return result;
 }
 
-static void keybind_add(Keybind *this, const char *key, EditCommand func)
-{
+static void keybind_add(Keybind *this, const char *key, EditCommand func) {
     BindingElement *e = malloc(sizeof(BindingElement));
     memset(e, 0, sizeof(BindingElement));
     e->key = key_compile(key);
     e->func = func;
 
-    if (this->bind == NULL)
-    {
+    if (this->bind == NULL) {
         this->bind = e;
 
         return;
     }
 
     int cmp = strcmp(this->bind->key, key);
-    if (cmp == 0)
-    {
+    if (cmp == 0) {
         e->next = this->bind->next;
         free(this->bind);
         this->bind = e;
 
         return;
-    }
-    else if (cmp > 0)
-    {
+    } else if (cmp > 0) {
         e->next = this->bind;
         this->bind = e;
 
@@ -120,45 +107,30 @@ static void keybind_add(Keybind *this, const char *key, EditCommand func)
 
     BindingElement *prev = this->bind;
     BindingElement *next = this->bind;
-    while (next != NULL && strcmp(next->key, key) < 0)
-    {
+    while (next != NULL && strcmp(next->key, key) < 0) {
         prev = next;
         next = prev->next;
     }
 
-    if (next == NULL)
-    {
+    if (next == NULL) {
         prev->next = e;
-    }
-    else if (strcmp(next->key, key) == 0)
-    {
+    } else if (strcmp(next->key, key) == 0) {
         prev->next = e;
         e->next = next->next;
         free(next);
-    }
-    else
-    {
+    } else {
         prev->next = e;
         e->next = next;
     }
 }
 
-enum KeyBindState {
-    KEYBIND_NOT_HANDLED,
-    KEYBIND_HANDLED,
-    KEYBIND_WAIT
-}
+enum KeyBindState { KEYBIND_NOT_HANDLED, KEYBIND_HANDLED, KEYBIND_WAIT };
 
-static enum KeyBindState
-keybind_handle(Keybind *this, char *key, Buffer *buf)
-{
+static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
     BindingElement *elem = this->bind;
-    while (elem != NULL)
-    {
-        if (strncmp(key, elem->key, strlen(key)) == 0)
-        {
-            if (strcmp(key, elem->key) == 0)
-            {
+    while (elem != NULL) {
+        if (strncmp(key, elem->key, strlen(key)) == 0) {
+            if (strcmp(key, elem->key) == 0) {
                 write_message("");
                 (*(elem->func))(buf);
 
@@ -171,16 +143,14 @@ keybind_handle(Keybind *this, char *key, Buffer *buf)
         elem = elem->next;
     }
 
-    if (strlen(key_buf) != 1)
-        return KEYBIND_HANDLED;
+    if (strlen(key_buf) != 1) return KEYBIND_HANDLED;
 
     return KEYBIND_NOT_HANDLED;
 }
 
 static Keybind *global_keybind;
 
-static void init_global_keybind(void)
-{
+static void init_global_keybind(void) {
     global_keybind = keybind_create();
 
     keybind_add(global_keybind, "^[[C", ec_cursor_forward);
@@ -193,27 +163,22 @@ static void init_global_keybind(void)
     keybind_add(global_keybind, "\x7f", ec_delete_backward);
 }
 
-void keybind_set_up(void)
-{
+void keybind_set_up(void) {
     memset(key_buf, 0, sizeof(key_buf));
 
     init_global_keybind();
 }
 
-void keybind_tear_down(void)
-{
-    keybind_destruct(global_keybind);
-}
+void keybind_tear_down(void) { keybind_destruct(global_keybind); }
 
-void handle_key(int c)
-{
+void handle_key(int c) {
     unsigned int i = 0;
-    while (key_buf[i]) ++i;
+    while (key_buf[i])
+        ++i;
 
     key_buf[i] = (char)c;
 
-    switch (keybind_handle(global_keybind, key_buf, current_buffer))
-    {
+    switch (keybind_handle(global_keybind, key_buf, current_buffer)) {
     case KEYBIND_NOT_HANDLED:
         buffer_insert(current_buffer, (char)c);
         // fall through

@@ -14,6 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -21,7 +22,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
 #include <unistd.h>
 
 #include "buffer.h"
@@ -30,13 +30,11 @@
 
 Buffer *current_buffer;
 
-static Buffer *buffer_create_existing_file(const char *path, const char *buf_name, struct stat stat_buf)
-{
+static Buffer *buffer_create_existing_file(const char *path,
+                                           const char *buf_name,
+                                           struct stat stat_buf) {
     int fd = open(path, O_RDONLY);
-    if (fd < 0)
-    {
-        return NULL;
-    }
+    if (fd < 0) return NULL;
 
     size_t fsize = (size_t)stat_buf.st_size;
     char *tmp_buf = malloc(sizeof(char) * (fsize + INIT_GAP_SIZE));
@@ -50,27 +48,22 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
 
     size_t nlf = 0, ncr = 0, ncrlf = 0;
     int prev_cr = 0;
-    for (size_t i = INIT_GAP_SIZE; i < fsize + INIT_GAP_SIZE; i++)
-    {
+    for (size_t i = INIT_GAP_SIZE; i < fsize + INIT_GAP_SIZE; i++) {
         switch (tmp_buf[i]) {
         case '\n':
-            if (prev_cr)
-            {
+            if (prev_cr) {
                 ++ncrlf;
                 prev_cr = 0;
-            }
-            else
-            {
+            } else {
                 ++nlf;
             }
             break;
         case '\r':
-                if (prev_cr) ++ncr;
-                prev_cr = 1;
-                break;
+            if (prev_cr) ++ncr;
+            prev_cr = 1;
+            break;
         default:
-            if (prev_cr)
-            {
+            if (prev_cr) {
                 ++ncr;
                 prev_cr = 0;
             }
@@ -85,12 +78,10 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
 
     buf_pos = INIT_GAP_SIZE;
     prev_cr = 0;
-    for (size_t i = INIT_GAP_SIZE; i < orig_fsize + INIT_GAP_SIZE; i++)
-    {
+    for (size_t i = INIT_GAP_SIZE; i < orig_fsize + INIT_GAP_SIZE; i++) {
         switch (tmp_buf[i]) {
         case '\n':
-            if (!prev_cr)
-            {
+            if (!prev_cr) {
                 content_buf[buf_pos] = tmp_buf[i];
                 prev_cr = 0;
                 ++buf_pos;
@@ -128,8 +119,10 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     result->buf_size = fsize + INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    if (ncr > nlf && ncr > ncrlf) result->line_ending = LEND_CR;
-    else if (ncrlf > nlf && ncrlf > ncr) result->line_ending = LEND_CRLF;
+    if (ncr > nlf && ncr > ncrlf)
+        result->line_ending = LEND_CR;
+    else if (ncrlf > nlf && ncrlf > ncr)
+        result->line_ending = LEND_CRLF;
     result->modified = 0;
     result->cursor_x = 1;
     result->cursor_y = 1;
@@ -137,11 +130,9 @@ static Buffer *buffer_create_existing_file(const char *path, const char *buf_nam
     return result;
 }
 
-Buffer *buffer_create(const char *path, const char *buf_name)
-{
+Buffer *buffer_create(const char *path, const char *buf_name) {
     struct stat stat_buf;
-    if (stat(path, &stat_buf) == 0)
-    {
+    if (stat(path, &stat_buf) == 0) {
         return buffer_create_existing_file(path, buf_name, stat_buf);
     }
 
@@ -172,8 +163,7 @@ Buffer *buffer_create(const char *path, const char *buf_name)
     return result;
 }
 
-Buffer *buffer_create_system(const char *name)
-{
+Buffer *buffer_create_system(const char *name) {
     char *content_buf = malloc(sizeof(char) * INIT_GAP_SIZE);
 
     Buffer *result = malloc(sizeof(Buffer));
@@ -189,8 +179,7 @@ Buffer *buffer_create_system(const char *name)
     return result;
 }
 
-void buffer_destruct(Buffer *this)
-{
+void buffer_destruct(Buffer *this) {
     free(this->buf_name);
     free(this->path);
     free(this->content);
@@ -198,25 +187,21 @@ void buffer_destruct(Buffer *this)
     free(this);
 }
 
-static void buffer_update_cursor_position(Buffer *this)
-{
+static void buffer_update_cursor_position(Buffer *this) {
     unsigned int cursor_x = 1;
     unsigned int cursor_y = 1;
 
     size_t i = 0;
-    while (i < this->buf_size - (this->gap_end - this->gap_start) && i < this->point)
-    {
+    while (i < this->buf_size - (this->gap_end - this->gap_start) &&
+           i < this->point) {
         ++cursor_x;
 
-        if (BUFFER_GET_CHAR(this, i) == '\n')
-        {
+        if (BUFFER_GET_CHAR(this, i) == '\n') {
             cursor_x = 1;
             ++cursor_y;
-        }
-        else if (cursor_x >= term_width
-            && i + 1 < this->buf_size - (this->gap_end - this->gap_start)
-            && BUFFER_GET_CHAR(this, i + 1) != '\n')
-        {
+        } else if (cursor_x >= term_width &&
+                   i + 1 < this->buf_size - (this->gap_end - this->gap_start) &&
+                   BUFFER_GET_CHAR(this, i + 1) != '\n') {
             cursor_x = 1;
             ++cursor_y;
         }
@@ -228,10 +213,8 @@ static void buffer_update_cursor_position(Buffer *this)
     this->cursor_y = cursor_y;
 }
 
-void buffer_cursor_forward(Buffer *this)
-{
-    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1)
-    {
+void buffer_cursor_forward(Buffer *this) {
+    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1) {
         write_message("End of buffer.");
 
         return;
@@ -246,10 +229,8 @@ void buffer_cursor_forward(Buffer *this)
     buffer_update_cursor_position(this);
 }
 
-void buffer_cursor_back(Buffer *this)
-{
-    if (this->point == 0)
-    {
+void buffer_cursor_back(Buffer *this) {
+    if (this->point == 0) {
         write_message("Beginning of buffer.");
 
         return;
@@ -264,10 +245,8 @@ void buffer_cursor_back(Buffer *this)
     buffer_update_cursor_position(this);
 }
 
-void buffer_insert(Buffer *this, char c)
-{
-    if (this->gap_end - this->gap_start < MIN_GAP_SIZE)
-    {
+void buffer_insert(Buffer *this, char c) {
+    if (this->gap_end - this->gap_start < MIN_GAP_SIZE) {
         char *new_buf = malloc(sizeof(char) * (this->buf_size + INIT_GAP_SIZE));
         memcpy(new_buf, this->content, this->gap_start);
         memcpy(new_buf + this->gap_end + INIT_GAP_SIZE,
@@ -294,10 +273,8 @@ void buffer_insert(Buffer *this, char c)
     buffer_update_cursor_position(this);
 }
 
-void buffer_delete_backward(Buffer *this)
-{
-    if (this->point == 0)
-    {
+void buffer_delete_backward(Buffer *this) {
+    if (this->point == 0) {
         write_message("Beginning of buffer.");
 
         return;
@@ -309,18 +286,15 @@ void buffer_delete_backward(Buffer *this)
     buffer_update_cursor_position(this);
 }
 
-int buffer_save(Buffer *this)
-{
-    if (!this->modified)
-    {
+int buffer_save(Buffer *this) {
+    if (!this->modified) {
         write_message("Buffer is not modified.");
 
         return 0;
     }
 
     FILE *f = fopen(this->path, "w");
-    if (f == NULL)
-    {
+    if (f == NULL) {
         write_message(strerror(errno));
 
         return 0;
@@ -331,10 +305,8 @@ int buffer_save(Buffer *this)
     size_t n_in_buf = 0;
     size_t i = 0;
     int wait_lf = 0;
-    while (i < this->buf_size)
-    {
-        if (this->gap_start <= i && i < this->gap_end)
-        {
+    while (i < this->buf_size) {
+        if (this->gap_start <= i && i < this->gap_end) {
             i = this->gap_end;
 
             if (i >= this->buf_size) break;
@@ -342,46 +314,34 @@ int buffer_save(Buffer *this)
             continue;
         }
 
-        if (wait_lf)
-        {
+        if (wait_lf) {
             buf[n_in_buf] = '\n';
             wait_lf = 0;
         }
 
-        if (this->line_ending != LEND_LF && this->content[i] == '\n')
-        {
-            if (this->line_ending == LEND_CR)
-            {
+        if (this->line_ending != LEND_LF && this->content[i] == '\n') {
+            if (this->line_ending == LEND_CR) {
                 buf[n_in_buf] = '\r';
                 ++n_in_buf;
-            }
-            else if (this->line_ending == LEND_CRLF)
-            {
+            } else if (this->line_ending == LEND_CRLF) {
                 buf[n_in_buf] = '\r';
                 ++n_in_buf;
-                if (n_in_buf == 2048)
-                {
+                if (n_in_buf == 2048) {
                     wait_lf = 1;
-                }
-                else
-                {
+                } else {
                     buf[n_in_buf] = '\n';
                     ++n_in_buf;
                 }
             }
-        }
-        else
-        {
+        } else {
             buf[n_in_buf] = this->content[i];
             ++n_in_buf;
         }
 
         ++i;
 
-        if (n_in_buf == 2048)
-        {
-            if (fwrite(buf, 1, n_in_buf, f) < n_in_buf)
-            {
+        if (n_in_buf == 2048) {
+            if (fwrite(buf, 1, n_in_buf, f) < n_in_buf) {
                 write_message(strerror(errno));
                 fclose(f);
 
@@ -392,8 +352,7 @@ int buffer_save(Buffer *this)
         }
     }
 
-    if (fwrite(buf, 1, n_in_buf, f) < n_in_buf)
-    {
+    if (fwrite(buf, 1, n_in_buf, f) < n_in_buf) {
         write_message(strerror(errno));
         fclose(f);
 

@@ -20,13 +20,11 @@
 
 #include "utilities.h"
 
-char *itoa(unsigned int num)
-{
+char *itoa(unsigned int num) {
     int n = num != 0 ? (unsigned int)log10((double)num) + 2 : 2;
     char *result = malloc(sizeof(char) * (unsigned int)n);
 
-    for (int i = n - 2; i >= 0; i--)
-    {
+    for (int i = n - 2; i >= 0; i--) {
         result[i] = '0' + num % 10;
         num /= 10;
     }

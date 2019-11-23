@@ -28,8 +28,7 @@ static struct termios orig_termios;
 size_t term_width;
 size_t term_height;
 
-void tputc(int c)
-{
+void tputc(int c) {
     char buf[1];
 
     buf[0] = (char)c;
@@ -38,8 +37,7 @@ void tputc(int c)
 
 void tputs(char *s) { write(1, s, strlen(s)); }
 
-int tgetc(void)
-{
+int tgetc(void) {
     char buf[1];
 
     read(1, buf, 1);
@@ -47,14 +45,12 @@ int tgetc(void)
     return buf[0];
 }
 
-void esc_write(char *s)
-{
+void esc_write(char *s) {
     tputc('\e');
     tputs(s);
 }
 
-static void init_variables(void)
-{
+static void init_variables(void) {
     // get terminal window size.
     struct winsize w;
     ioctl(0, TIOCGWINSZ, &w);
@@ -63,8 +59,7 @@ static void init_variables(void)
     term_height = (size_t)w.ws_row;
 }
 
-void term_set_up()
-{
+void term_set_up() {
     // https://invisible-island.net/xterm/xterm.faq.html#xterm_tite
     // enter alternate screen.
     esc_write("7");
@@ -93,8 +88,7 @@ void term_set_up()
     init_variables();
 }
 
-void term_tear_down()
-{
+void term_tear_down() {
     // restore original terminal attributes after all output written.
     tcsetattr(0, TCSADRAIN, &orig_termios);
 
@@ -106,10 +100,7 @@ void term_tear_down()
     esc_write("8");
 }
 
-
-
-void move_cursor(unsigned int x, unsigned int y)
-{
+void move_cursor(unsigned int x, unsigned int y) {
     esc_write("[");
     char *line = itoa(y);
     tputs(line);

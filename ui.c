@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#include <stdlib.h>
 #include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "buffer.h"
@@ -58,8 +58,7 @@ Buffer **displayed_buffers;
 
 char **display_buffer;
 
-void set_buffer(Buffer *buf, enum BufferPosition pos)
-{
+void set_buffer(Buffer *buf, enum BufferPosition pos) {
     switch (pos) {
     case BUF_HEADER:
         buf->display_range_y_start = 1;
@@ -85,8 +84,7 @@ void set_buffer(Buffer *buf, enum BufferPosition pos)
     }
 }
 
-void init_system_buffers(void)
-{
+void init_system_buffers(void) {
     Buffer *header = buffer_create_system("Header");
     set_buffer(header, BUF_HEADER);
 
@@ -94,12 +92,10 @@ void init_system_buffers(void)
     set_buffer(footer, BUF_FOOTER);
 }
 
-static void update_header(char *fname)
-{
+static void update_header(char *fname) {
     Buffer *header = displayed_buffers[0];
 
-    if (fname == NULL)
-        fname = "UNTITLED";
+    if (fname == NULL) fname = "UNTITLED";
 
     size_t len = strlen(fname);
     for (size_t i = 0; i < len; i++)
@@ -113,16 +109,14 @@ static void update_header(char *fname)
         buffer_insert(header, progname_section[i]);
 }
 
-void select_buffer(Buffer *buf)
-{
+void select_buffer(Buffer *buf) {
     current_buffer = buf;
     update_header(buf->buf_name);
 }
 
-void write_message(char *msg)
-{
+void write_message(char *msg) {
     Buffer *footer = displayed_buffers[2];
-    //TODO: Don't touch struct member here.
+    // TODO: Don't touch struct member here.
     footer->point = 0;
     footer->gap_start = 0;
     footer->gap_end = footer->buf_size;
@@ -133,76 +127,63 @@ void write_message(char *msg)
         buffer_insert(footer, msg[i]);
 }
 
-void ui_set_up(void)
-{
-    display_buffer = malloc(sizeof(char*) * term_height);
-    for (size_t i = 0; i < term_height; i++)
-    {
+void ui_set_up(void) {
+    display_buffer = malloc(sizeof(char *) * term_height);
+    for (size_t i = 0; i < term_height; i++) {
         display_buffer[i] = malloc(sizeof(char) * term_width);
 
         for (size_t j = 0; j < term_width; j++)
             display_buffer[i][j] = ' ';
     }
 
-    displayed_buffers = malloc(sizeof(Buffer*) * 4);
-    memset(displayed_buffers, 0, sizeof(Buffer*) * 4);
+    displayed_buffers = malloc(sizeof(Buffer *) * 4);
+    memset(displayed_buffers, 0, sizeof(Buffer *) * 4);
 }
 
-void ui_tear_down(void)
-{
+void ui_tear_down(void) {
     for (size_t i = 0; i < 3; i++)
         buffer_destruct(displayed_buffers[i]);
     free(displayed_buffers);
 
-    for (size_t i = 0; i < term_height; i++)
-    {
+    for (size_t i = 0; i < term_height; i++) {
         free(display_buffer[i]);
     }
     free(display_buffer);
 }
 
-void exit_editor()
-{
-    editor_exited = 1;
-}
+void exit_editor() { editor_exited = 1; }
 
-void redraw_editor(void)
-{
+void redraw_editor(void) {
     unsigned int x = 1;
     unsigned int y = 1;
 
     size_t i;
     int c;
-    for (size_t b = 0; b < 3; b++)
-    {
+    for (size_t b = 0; b < 3; b++) {
         Buffer *buf = displayed_buffers[b];
 
         y = (unsigned int)buf->display_range_y_start;
         i = 0;
-        while (i < buf->buf_size - (buf->gap_end - buf->gap_start))
-        {
+        while (i < buf->buf_size - (buf->gap_end - buf->gap_start)) {
             c = BUFFER_GET_CHAR(buf, i);
 
-            if (c == '\n')
-            {
-                for (unsigned int j = x; j <= term_width; j++) DRAW_CHAR(' ', j, y);
+            if (c == '\n') {
+                for (unsigned int j = x; j <= term_width; j++)
+                    DRAW_CHAR(' ', j, y);
 
                 ++y;
 
                 if (y > buf->display_range_y_end) break;
 
                 x = 1;
-            }
-            else
-            {
+            } else {
                 DRAW_CHAR((char)c, x, y);
 
                 ++x;
 
-                if (x == term_width
-                    && i + 1 < buf->buf_size - (buf->gap_end - buf->gap_start)
-                    && BUFFER_GET_CHAR(buf, i + 1) != '\n')
-                {
+                if (x == term_width &&
+                    i + 1 < buf->buf_size - (buf->gap_end - buf->gap_start) &&
+                    BUFFER_GET_CHAR(buf, i + 1) != '\n') {
                     DRAW_CHAR('\\', x, y);
                     x = 1;
                     ++y;
@@ -212,9 +193,9 @@ void redraw_editor(void)
             ++i;
         }
 
-        for (unsigned int j = y; j < buf->display_range_y_end; j++)
-        {
-            for (unsigned int k = x; k <= term_width; k++) DRAW_CHAR(' ', k, j);
+        for (unsigned int j = y; j < buf->display_range_y_end; j++) {
+            for (unsigned int k = x; k <= term_width; k++)
+                DRAW_CHAR(' ', k, j);
             x = 1;
         }
     }
@@ -222,10 +203,8 @@ void redraw_editor(void)
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
 }
 
-void editor_main_loop()
-{
-    for (;;)
-    {
+void editor_main_loop() {
+    for (;;) {
         if (editor_exited) break;
 
         redraw_editor();
@@ -234,7 +213,6 @@ void editor_main_loop()
     }
 }
 
-void move_cursor_editor(unsigned int x, unsigned int y)
-{
+void move_cursor_editor(unsigned int x, unsigned int y) {
     move_cursor(x, y + 1);
 }

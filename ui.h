@@ -62,15 +62,15 @@ extern char **display_buffer;
 #include "terminal.h"
 
 /* Draws character to the termianl if needed. */
-#define DRAW_CHAR(c, x, y)                                                     \
-    do {                                                                       \
-        if (x > term_width || y > term_height ||                               \
-            display_buffer[y - 1][x - 1] == c)                                 \
-            break;                                                             \
-                                                                               \
-        move_cursor(x, y);                                                     \
-        tputc(c);                                                              \
-        display_buffer[y - 1][x - 1] = c;                                      \
+#define DRAW_CHAR(c, x, y)                       \
+    do {                                         \
+        if (x > term_width || y > term_height || \
+            display_buffer[y - 1][x - 1] == c)   \
+            break;                               \
+                                                 \
+        move_cursor(x, y);                       \
+        tputc(c);                                \
+        display_buffer[y - 1][x - 1] = c;        \
     } while (0);
 
 #endif
