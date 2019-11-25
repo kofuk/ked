@@ -22,9 +22,9 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-DEFINE_EDIT_COMMAND(cursor_forward) { buffer_cursor_forward(buf); }
+DEFINE_EDIT_COMMAND(cursor_forward) { buffer_cursor_move(buf, 1, 1); }
 
-DEFINE_EDIT_COMMAND(cursor_back) { buffer_cursor_back(buf); }
+DEFINE_EDIT_COMMAND(cursor_back) { buffer_cursor_move(buf, 1, 0); }
 
 DEFINE_EDIT_COMMAND(delete_backward) { buffer_delete_backward(buf); }
 
@@ -34,6 +34,6 @@ DEFINE_EDIT_COMMAND(editor_quit) { exit_editor(); }
 
 DEFINE_EDIT_COMMAND(display_way_of_quit) { write_message("Ctrl+Q to quit."); }
 
-DEFINE_EDIT_COMMAND(process_stop) {stop_editor();}
+DEFINE_EDIT_COMMAND(process_stop) { stop_editor(); }
 
 #pragma GCC diagnostic pop

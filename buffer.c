@@ -213,55 +213,48 @@ static void buffer_update_cursor_position(Buffer *this) {
     this->cursor_y = cursor_y;
 }
 
-void buffer_cursor_forward(Buffer *this) {
-    if (this->point >= this->buf_size - (this->gap_end - this->gap_start) - 1) {
-        write_message("End of buffer.");
+static void buffer_expand(Buffer *this, size_t amount) {
+    char *new_buf = malloc(sizeof(char) * (this->buf_size + amount));
+    memcpy(new_buf, this->content, this->gap_start);
+    memcpy(new_buf + this->gap_end + amount, this->content + this->gap_end, this->buf_size - this->gap_end);
+    free(this->content);
 
-        return;
-    }
-
-    ++(this->point);
-
-    this->content[this->gap_start] = this->content[this->gap_end];
-    ++(this->gap_start);
-    ++(this->gap_end);
-
-    buffer_update_cursor_position(this);
+    this->content = new_buf;
+    this->gap_end += amount;
+    this->buf_size += amount;
 }
 
-void buffer_cursor_back(Buffer *this) {
-    if (this->point == 0) {
-        write_message("Beginning of buffer.");
+void buffer_cursor_move(Buffer *this, size_t n, int forward) {
+    if (n > this->gap_end - this->gap_start)
+        buffer_expand(this, n - this->gap_end - this->gap_start);
 
-        return;
+    if (forward) {
+        if (n > this->buf_size - this->gap_end) {
+            write_message("End of buffer.");
+            n = this->buf_size - this->gap_end;
+        }
+
+        memcpy(this->content + this->gap_start, this->content + this->gap_end, n);
+        this->gap_start += n;
+        this->gap_end += n;
+        this->point += n;
+    } else {
+        if (n > this->gap_start) {
+            write_message("Beginning of buffer.");
+            n = this->gap_start;
+        }
+
+        memcpy(this->content + this->gap_start - n, this->content + this->gap_end - n, 1);
+        this->gap_start -= n;
+        this->gap_end -= n;
+        this->point -= n;
     }
-
-    --(this->point);
-
-    this->content[this->gap_end - 1] = this->content[this->gap_start - 1];
-    --(this->gap_start);
-    --(this->gap_end);
 
     buffer_update_cursor_position(this);
 }
 
 void buffer_insert(Buffer *this, char c) {
-    if (this->gap_end - this->gap_start < MIN_GAP_SIZE) {
-        char *new_buf = malloc(sizeof(char) * (this->buf_size + INIT_GAP_SIZE));
-        memcpy(new_buf, this->content, this->gap_start);
-        memcpy(new_buf + this->gap_end + INIT_GAP_SIZE,
-               this->content + this->gap_end, this->buf_size - this->gap_end);
-
-        char *old_buf = this->content;
-
-        this->content = new_buf;
-
-        this->gap_end += INIT_GAP_SIZE;
-        this->buf_size += INIT_GAP_SIZE;
-
-        free(old_buf);
-        old_buf = NULL;
-    }
+    if (this->gap_end - this->gap_start < MIN_GAP_SIZE) buffer_expand(this, INIT_GAP_SIZE);
 
     this->content[this->gap_start] = c;
 

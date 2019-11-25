@@ -66,10 +66,8 @@ Buffer *buffer_create_system(const char *);
 /* Frees the buffer. */
 void buffer_destruct(Buffer *);
 
-/* Moves cursor for 1 character to forward. */
-void buffer_cursor_forward(Buffer *);
-/* Moves cursor for 1 character to backward. */
-void buffer_cursor_back(Buffer *);
+/* Move cursor forward of backward in specified size. */
+void buffer_cursor_move(Buffer *, size_t, int);
 
 /* Insertes character to buffer point position. */
 void buffer_insert(Buffer *, char);
