@@ -253,6 +253,46 @@ void buffer_cursor_move(Buffer *this, size_t n, int forward) {
     buffer_update_cursor_position(this);
 }
 
+void buffer_cursor_forward_line(Buffer *this) {
+    size_t col = 0;
+
+    size_t point = this->point;
+
+    /* First, search for '\n' to obtain current column number. */
+    while (point != 0 && BUFFER_GET_CHAR(this, point) != '\n') {
+        ++col;
+        --point;
+    }
+
+    point = this->point;
+    size_t n_forward = 1;
+
+    /* Next, search for next '\n' to calculate the number of  remaining
+       character. If point is now on the last line, we only move to end of the
+       buffer and exit. */
+    while (BUFFER_GET_CHAR(this, point) != '\n') {
+        if (point >= this->buf_size - (this->gap_end - this->gap_start)) {
+            buffer_cursor_move(this, n_forward, 1);
+
+            return;
+        }
+
+        ++n_forward;
+        ++point;
+    }
+
+    ++point;
+
+    size_t new_col = 1;
+    /* Finally, move to target column unless reach to the end of the buffer. */
+    while (BUFFER_GET_CHAR(this, point) != '\n' && new_col < col) {
+        ++n_forward;
+        ++new_col;
+        ++point;
+    }
+    buffer_cursor_move(this, n_forward, 1);
+}
+
 void buffer_insert(Buffer *this, char c) {
     if (this->gap_end - this->gap_start < MIN_GAP_SIZE) buffer_expand(this, INIT_GAP_SIZE);
 

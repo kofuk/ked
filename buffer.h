@@ -69,6 +69,9 @@ void buffer_destruct(Buffer *);
 /* Move cursor forward of backward in specified size. */
 void buffer_cursor_move(Buffer *, size_t, int);
 
+/* Move cursor forward in 1 line. */
+void buffer_cursor_forward_line(Buffer *);
+
 /* Insertes character to buffer point position. */
 void buffer_insert(Buffer *, char);
 /* Deletes 1 character backward. */

@@ -26,6 +26,8 @@ DEFINE_EDIT_COMMAND(cursor_forward) { buffer_cursor_move(buf, 1, 1); }
 
 DEFINE_EDIT_COMMAND(cursor_back) { buffer_cursor_move(buf, 1, 0); }
 
+DEFINE_EDIT_COMMAND(cursor_forward_line) { buffer_cursor_forward_line(buf); };
+
 DEFINE_EDIT_COMMAND(delete_backward) { buffer_delete_backward(buf); }
 
 DEFINE_EDIT_COMMAND(buffer_save) { buffer_save(buf); }

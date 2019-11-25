@@ -27,6 +27,7 @@ typedef void (*EditCommand)(EDIT_COMMAND_ARG_LIST);
 
 DEFINE_EDIT_COMMAND(cursor_forward);
 DEFINE_EDIT_COMMAND(cursor_back);
+DEFINE_EDIT_COMMAND(cursor_forward_line);
 DEFINE_EDIT_COMMAND(delete_backward);
 DEFINE_EDIT_COMMAND(buffer_save);
 DEFINE_EDIT_COMMAND(editor_quit);
