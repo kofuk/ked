@@ -165,6 +165,8 @@ void redraw_editor(void) {
         y = (unsigned int)buf->display_range_y_start;
         i = 0;
         while (i < buf->buf_size - (buf->gap_end - buf->gap_start)) {
+            if (y > buf->display_range_y_end) break;
+
             c = BUFFER_GET_CHAR(buf, i);
 
             if (c == '\n') {
@@ -172,8 +174,6 @@ void redraw_editor(void) {
                     DRAW_CHAR(' ', j, y);
 
                 ++y;
-
-                if (y > buf->display_range_y_end) break;
 
                 x = 1;
             } else {
