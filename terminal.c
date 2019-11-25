@@ -117,11 +117,16 @@ void move_cursor(unsigned int x, unsigned int y) {
     tputs("f");
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 static void resume_editor(int signal) {
     term_set_up();
 
     force_redraw_editor();
 }
+
+#pragma GCC diagnostic pop
 
 void stop_editor(void) {
     term_tear_down();
