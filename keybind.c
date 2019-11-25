@@ -153,19 +153,19 @@ static Keybind *global_keybind;
 static void init_global_keybind(void) {
     global_keybind = keybind_create();
 
-    keybind_add(global_keybind, "^[[B", ec_cursor_forward_line);
-    keybind_add(global_keybind, "^[[C", ec_cursor_forward);
-    keybind_add(global_keybind, "^[[D", ec_cursor_back);
-    keybind_add(global_keybind, "^B", ec_cursor_back);
-    keybind_add(global_keybind, "^C", ec_display_way_of_quit);
-    keybind_add(global_keybind, "^F", ec_cursor_forward);
-    keybind_add(global_keybind, "^H", ec_delete_backward);
-    keybind_add(global_keybind, "^N", ec_cursor_forward_line);
-    keybind_add(global_keybind, "^Q", ec_editor_quit);
-    keybind_add(global_keybind, "^X^C", ec_editor_quit);
-    keybind_add(global_keybind, "^X^S", ec_buffer_save);
-    keybind_add(global_keybind, "^Z", ec_process_stop);
-    keybind_add(global_keybind, "\x7f", ec_delete_backward);
+    keybind_add(global_keybind, "^[[B", EDIT_COMMAND_PTR(cursor_forward_line));
+    keybind_add(global_keybind, "^[[C", EDIT_COMMAND_PTR(cursor_forward));
+    keybind_add(global_keybind, "^[[D", EDIT_COMMAND_PTR(cursor_back));
+    keybind_add(global_keybind, "^B", EDIT_COMMAND_PTR(cursor_back));
+    keybind_add(global_keybind, "^C", EDIT_COMMAND_PTR(display_way_of_quit));
+    keybind_add(global_keybind, "^F", EDIT_COMMAND_PTR(cursor_forward));
+    keybind_add(global_keybind, "^H", EDIT_COMMAND_PTR(delete_backward));
+    keybind_add(global_keybind, "^N", EDIT_COMMAND_PTR(cursor_forward_line));
+    keybind_add(global_keybind, "^Q", EDIT_COMMAND_PTR(editor_quit));
+    keybind_add(global_keybind, "^X^C", EDIT_COMMAND_PTR(editor_quit));
+    keybind_add(global_keybind, "^X^S", EDIT_COMMAND_PTR(buffer_save));
+    keybind_add(global_keybind, "^Z", EDIT_COMMAND_PTR(process_stop));
+    keybind_add(global_keybind, "\x7f", EDIT_COMMAND_PTR(delete_backward));
 }
 
 void keybind_set_up(void) {

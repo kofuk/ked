@@ -22,6 +22,7 @@
 #define EDIT_COMMAND_ARG_LIST Buffer *buf
 
 #define DEFINE_EDIT_COMMAND(name) void ec_##name(EDIT_COMMAND_ARG_LIST)
+#define EDIT_COMMAND_PTR(name) ec_##name
 
 typedef void (*EditCommand)(EDIT_COMMAND_ARG_LIST);
 
