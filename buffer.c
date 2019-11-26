@@ -244,7 +244,7 @@ void buffer_cursor_move(Buffer *this, size_t n, int forward) {
             n = this->gap_start;
         }
 
-        memcpy(this->content + this->gap_start - n, this->content + this->gap_end - n, 1);
+        memcpy(this->content + this->gap_end - n, this->content + this->gap_start - n, n);
         this->gap_start -= n;
         this->gap_end -= n;
         this->point -= n;
