@@ -82,7 +82,7 @@ static inline void ui_draw_char(unsigned char c, unsigned int x,
         return;
 
     move_cursor(x, y);
-    tputc(c);
+    tputc_printable(c);
     display_buffer[y - 1][x - 1].c[0] = c;
     for (int i = 1; i < 4; ++i) {
         display_buffer[y - 1][x - 1].c[i] = 0;

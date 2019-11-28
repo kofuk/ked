@@ -32,8 +32,10 @@ static struct termios orig_termios;
 size_t term_width;
 size_t term_height;
 
-void tputc(int c) {
-    char_write_printable(1, (unsigned char)c);
+void tputc(int c) { write(1, &c, 1); }
+
+void tputc_printable(unsigned char c) {
+    char_write_printable(1, c);
 }
 
 void tputrune(Rune r) {

@@ -58,22 +58,32 @@ void string_destruct(String *this) {
 }
 
 void attr_runes_set_width(AttrRune *r, size_t len) {
-    //FIXME: temporary implementation
-    for (size_t i = 0; i < len; ++i) attr_rune_set_width(r + i);
+    // FIXME: temporary implementation
+    for (size_t i = 0; i < len; ++i)
+        attr_rune_set_width(r + i);
 }
 
 void attr_rune_set_width(AttrRune *r) {
-    if (r->c[0] == '\t')
-        r->display_width = 8;
-    else if ((r->c[0] >> 7 & 1) == 0)
-        r->display_width = 1;
-    else
+    if ((r->c[0] >> 7 & 1) == 0) {
+        unsigned char c = r->c[0];
+
+        if (c == '\t')
+            r->display_width = 8;
+        else if (c <= 0x1f)
+            r->display_width = 2;
+        else
+            r->display_width = 1;
+    } else
         r->display_width = 2;
 }
 
 void char_write_printable(int fd, unsigned char c) {
-    if (c == '\t') write(fd, "        ", 8);
-    else
+    if (c == '\t')
+        write(fd, "        ", 8);
+    else if (c <= 0x1f) {
+        char buf[2] = {'^', (char)(c + '@')};
+        write(fd, buf, 2);
+    } else
         write(fd, &c, 1);
 }
 
