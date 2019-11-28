@@ -158,14 +158,26 @@ void redraw_editor(void) {
             } else {
                 ui_draw_rune(c, x, y);
 
-                x += (unsigned int)c.display_width;
+                for (unsigned int j = x; j < x + c.display_width; ++j)
+                    ui_invalidate_point(j, y);
 
-                if (x == term_width &&
-                    i + 1 < buf->buf_size - (buf->gap_end - buf->gap_start) &&
-                    !rune_is_lf(buffer_get_rune(buf, i + 1))) {
-                    ui_draw_char('\\', x, y);
-                    x = 1;
-                    ++y;
+                x += c.display_width;
+
+                if (i + 1 < buf->buf_size - (buf->gap_end - buf->gap_start)) {
+                    AttrRune next_rune = buffer_get_rune(buf, i + 1);
+                    if (!rune_is_lf(next_rune) &&
+                        x + next_rune.display_width >= term_width) {
+                        if (x + next_rune.display_width == term_width) {
+                            ui_draw_char('\\', x, y);
+                        } else {
+                            ui_draw_char(' ', x, y);
+                            ++x;
+                            ui_draw_char('\\', x, y);
+                        }
+
+                        x = 1;
+                        ++y;
+                    }
                 }
             }
 

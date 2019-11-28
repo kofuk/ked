@@ -66,7 +66,7 @@ extern AttrRune **display_buffer;
 /* Draws AttrRune with its attrubutes to the termianl if needed. */
 static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
     if (x > term_width || y > term_height ||
-        rune_eq(display_buffer[y - 1][x - 1], r))
+        rune_eq(display_buffer[y - 1][x - 1], r) || r.c[0] == '\n')
         return;
 
     move_cursor(x, y);
@@ -75,9 +75,10 @@ static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
 }
 
 /* Draws char to the terminal if needed. */
-static inline void ui_draw_char(char c, unsigned int x, unsigned int y) {
+static inline void ui_draw_char(unsigned char c, unsigned int x,
+                                unsigned int y) {
     if (x > term_width || y > term_height ||
-        display_buffer[y - 1][x - 1].c[0] == c)
+        display_buffer[y - 1][x - 1].c[0] == c || c == '\n')
         return;
 
     move_cursor(x, y);
@@ -88,4 +89,11 @@ static inline void ui_draw_char(char c, unsigned int x, unsigned int y) {
     }
 }
 
+/* Make next drawing in the position to be redrawn. */
+static inline void ui_invalidate_point(unsigned int x, unsigned int y) {
+    if (x > term_width || y >= term_height) return;
+
+    /* \n will never drawn. */
+    display_buffer[y - 1][x - 1].c[0] = '\n';
+}
 #endif

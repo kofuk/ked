@@ -41,7 +41,8 @@ static Buffer *buffer_create_existing_file(const char *path,
     size_t size = (size_t)stat_buf.st_size;
 
     enum LineEnding lend;
-    AttrRune *content_buf = create_content_buffer(f, &size, INIT_GAP_SIZE, &lend);
+    AttrRune *content_buf =
+        create_content_buffer(f, &size, INIT_GAP_SIZE, &lend);
     fclose(f);
 
     size_t path_len = strlen(path);
@@ -130,19 +131,24 @@ static void buffer_update_cursor_position(Buffer *this) {
     unsigned int cursor_x = 1;
     unsigned int cursor_y = 1;
 
+    AttrRune r;
     size_t i = 0;
     while (i < this->buf_size - (this->gap_end - this->gap_start) &&
            i < this->point) {
-        ++cursor_x;
+        r = buffer_get_rune(this, i);
+        cursor_x += r.display_width;
 
-        if (rune_is_lf(buffer_get_rune(this, i))) {
+        if (rune_is_lf(r)) {
             cursor_x = 1;
             ++cursor_y;
-        } else if (cursor_x >= term_width &&
-                   i + 1 < this->buf_size - (this->gap_end - this->gap_start) &&
-                   !rune_is_lf(buffer_get_rune(this, i + 1))) {
-            cursor_x = 1;
-            ++cursor_y;
+        } else if (i + 1 < this->buf_size - (this->gap_end - this->gap_start) &&
+                   i + 1 < this->point) {
+            AttrRune next = buffer_get_rune(this, i + 1);
+            if (cursor_x + next.display_width >= term_width &&
+                !rune_is_lf(next)) {
+                cursor_x = 1;
+                ++cursor_y;
+            }
         }
 
         ++i;
@@ -239,7 +245,7 @@ void buffer_insert(Buffer *this, Rune r) {
     if (this->gap_end - this->gap_start < MIN_GAP_SIZE)
         buffer_expand(this, INIT_GAP_SIZE);
 
-    memcpy(this->content[this->gap_start].c, r, 4);
+    memcpy(this->content[this->gap_start].c, r, sizeof(Rune));
     attr_rune_set_width(this->content + this->gap_start);
 
     ++(this->gap_start);

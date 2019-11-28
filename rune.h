@@ -10,7 +10,7 @@ typedef struct {
     /* Holds unicode one character. */
     unsigned char c[4];
     /* Width of the character when drawn on terminals */
-    char display_width;
+    unsigned char display_width;
     /* Terminal decoration attributes. */
     int attrs;
 } AttrRune;
