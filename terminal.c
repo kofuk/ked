@@ -33,18 +33,11 @@ size_t term_width;
 size_t term_height;
 
 void tputc(int c) {
-    char buf[1];
-
-    buf[0] = (char)c;
-    write(1, buf, 1);
+    char_write_printable(1, (unsigned char)c);
 }
 
 void tputrune(Rune r) {
-    size_t n = 1;
-    for (; n < 4; ++n)
-        if ((r[n] >> 6 & 0b11) != 0b10) break;
-
-    write(1, r, n);
+    rune_write_printable(1, r);
 }
 
 void tputs(char *s) { write(1, s, strlen(s)); }
