@@ -89,7 +89,7 @@ void term_set_up() {
     new_termios.c_iflag &= ~(IXOFF | IXON | IGNCR);
 
     // set noncanonical mode, no echo, etc.
-    new_termios.c_lflag &= ~(ISIG | ICANON | ECHO | FLUSHO);
+    new_termios.c_lflag &= ~(ISIG | ICANON | ECHO);
 
     // read byte-by-byte with blocking read.
     new_termios.c_cc[VMIN] = 1;
