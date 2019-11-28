@@ -41,9 +41,9 @@ void tputc(int c) {
 
 void tputrune(Rune r) {
     size_t n = 1;
-    for (; n < 4; ++n) {
-        if (r[n] >> 6 != 0b11) break;
-    }
+    for (; n < 4; ++n)
+        if ((r[n] >> 6 & 0b11) != 0b10) break;
+
     write(1, r, n);
 }
 

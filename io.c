@@ -106,6 +106,8 @@ static AttrRune *convert_to_rune_array(char *buf, size_t *len,
     }
     if (rune_i != 0) memcpy(result[res_i].c, rune_buf, sizeof(rune_buf));
 
+    attr_runes_set_width(result + gap_size, n_rune);
+
     *len = n_rune + gap_size;
 
     return result;

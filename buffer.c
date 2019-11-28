@@ -240,6 +240,7 @@ void buffer_insert(Buffer *this, Rune r) {
         buffer_expand(this, INIT_GAP_SIZE);
 
     memcpy(this->content[this->gap_start].c, r, 4);
+    attr_rune_set_width(this->content + this->gap_start);
 
     ++(this->gap_start);
     ++(this->point);

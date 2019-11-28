@@ -20,7 +20,7 @@ String *string_create(const char *str) {
             if (buf_i != 0) {
                 memcpy(ra + ra_i, rune_buf, sizeof(rune_buf));
                 memset(rune_buf, 0, sizeof(rune_buf));
-                buf_i= 0;
+                buf_i = 0;
                 ++ra_i;
             }
             rune_buf[buf_i] = str[i];
@@ -54,4 +54,9 @@ String *string_create(const char *str) {
 void string_destruct(String *this) {
     free(this->str);
     free(this);
+}
+
+void attr_runes_set_width(AttrRune *r, size_t len) {
+    //FIXME: temporary implementation
+    for (size_t i = 0; i < len; ++i) attr_rune_set_width(r + i);
 }

@@ -158,7 +158,7 @@ void redraw_editor(void) {
             } else {
                 ui_draw_rune(c, x, y);
 
-                ++x;
+                x += (unsigned int)c.display_width;
 
                 if (x == term_width &&
                     i + 1 < buf->buf_size - (buf->gap_end - buf->gap_start) &&

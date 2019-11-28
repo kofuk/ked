@@ -41,4 +41,13 @@ String *string_create(const char *);
 /* Frees geven array of Rune. */
 void string_destruct(String *);
 
+/* Set AttrRune.display_width for each given AttrRune. */
+void attr_runes_set_width(AttrRune *, size_t);
+
+/* Set AttrRune.display_width. */
+static inline void attr_rune_set_width(AttrRune *r) {
+    if ((r->c[0] >> 7 & 1) == 0) r->display_width = 1;
+    else r->display_width = 2;
+}
+
 #endif
