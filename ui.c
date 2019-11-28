@@ -142,7 +142,7 @@ void redraw_editor(void) {
         Buffer *buf = displayed_buffers[b];
 
         y = (unsigned int)buf->display_range_y_start;
-        i = 0;
+        i = buf->visible_start_point;
         while (i < buf->buf_size - (buf->gap_end - buf->gap_start)) {
             if (y > buf->display_range_y_end) break;
 

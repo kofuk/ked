@@ -132,8 +132,14 @@ static void buffer_update_cursor_position(Buffer *this) {
     unsigned int cursor_x = 1;
     unsigned int cursor_y = 1;
 
+    if (this->point < this->visible_start_point) {
+        this->cursor_y = 0;
+
+        return;
+    }
+
     AttrRune r;
-    size_t i = 0;
+    size_t i = this->visible_start_point;
     while (i < this->buf_size - (this->gap_end - this->gap_start) &&
            i < this->point) {
         r = buffer_get_rune(this, i);
@@ -200,6 +206,17 @@ void buffer_cursor_move(Buffer *this, size_t n, int forward) {
     }
 
     buffer_update_cursor_position(this);
+
+    if (this->cursor_y >
+        this->display_range_y_end - this->display_range_y_start) {
+        buffer_scroll(this, 1, 1);
+
+        buffer_update_cursor_position(this);
+    } else if (this->cursor_y == 0) {
+        buffer_scroll(this, 1, 0);
+
+        buffer_update_cursor_position(this);
+    }
 }
 
 void buffer_cursor_forward_line(Buffer *this) {
@@ -280,6 +297,39 @@ void buffer_delete_forward(Buffer *this) {
     ++(this->gap_end);
 
     buffer_update_cursor_position(this);
+}
+
+void buffer_scroll(Buffer *this, size_t n, char forward) {
+    if (forward) {
+        size_t point = this->visible_start_point;
+        while (point < this->buf_size - (this->gap_end - this->gap_start) &&
+               n != 0) {
+            if (rune_is_lf(buffer_get_rune(this, point))) --n;
+
+            ++point;
+        }
+
+        this->visible_start_point = point;
+    } else {
+        if (this->visible_start_point == 0) return;
+
+        ++n;
+        size_t point = this->visible_start_point - 1;
+        while (point != 0 && n != 0) {
+            if (rune_is_lf(buffer_get_rune(this, point))) {
+                --n;
+                if (n == 0) {
+                    ++point;
+
+                    break;
+                }
+            }
+
+            --point;
+        }
+
+        this->visible_start_point = point;
+    }
 }
 
 int buffer_save(Buffer *this) {

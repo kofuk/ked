@@ -47,6 +47,8 @@ typedef struct {
     size_t gap_end;
     /* Line ending character for this file. */
     enum LineEnding line_ending;
+    /* Point that should be placed on top-left. */
+    size_t visible_start_point;
     /* Beginning of display area that this buffer can be displayed. Inclusive.
      */
     size_t display_range_y_start;
@@ -84,8 +86,12 @@ static inline void buffer_insert_char(Buffer *this, unsigned char c) {
 
 /* Deletes 1 character backward. */
 void buffer_delete_backward(Buffer *);
+
 /* Deletes 1 character forward. */
 void buffer_delete_forward(Buffer *);
+
+/* Scroll for n lines vertically to forward or backward. */
+void buffer_scroll(Buffer *, size_t, char);
 
 /* Saves buffer to buffer file path. On success, this returns 1, and on failure,
  * returns 0. */
