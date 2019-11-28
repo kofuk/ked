@@ -269,6 +269,18 @@ void buffer_delete_backward(Buffer *this) {
     buffer_update_cursor_position(this);
 }
 
+void buffer_delete_forward(Buffer *this) {
+    if (this->point >= this->buf_size - (this->gap_end - this->gap_start)) {
+        write_message("End of buffer.");
+
+        return;
+    }
+
+    ++(this->gap_end);
+
+    buffer_update_cursor_position(this);
+}
+
 int buffer_save(Buffer *this) {
     if (!this->modified) {
         write_message("Buffer is not modified.");

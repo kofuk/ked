@@ -158,6 +158,7 @@ static void init_global_keybind(void) {
     keybind_add(global_keybind, "^[[D", EDIT_COMMAND_PTR(cursor_back));
     keybind_add(global_keybind, "^B", EDIT_COMMAND_PTR(cursor_back));
     keybind_add(global_keybind, "^C", EDIT_COMMAND_PTR(display_way_of_quit));
+    keybind_add(global_keybind, "^D", EDIT_COMMAND_PTR(delete_forward));
     keybind_add(global_keybind, "^F", EDIT_COMMAND_PTR(cursor_forward));
     keybind_add(global_keybind, "^H", EDIT_COMMAND_PTR(delete_backward));
     keybind_add(global_keybind, "^N", EDIT_COMMAND_PTR(cursor_forward_line));

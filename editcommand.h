@@ -30,6 +30,7 @@ DEFINE_EDIT_COMMAND(cursor_forward);
 DEFINE_EDIT_COMMAND(cursor_back);
 DEFINE_EDIT_COMMAND(cursor_forward_line);
 DEFINE_EDIT_COMMAND(delete_backward);
+DEFINE_EDIT_COMMAND(delete_forward);
 DEFINE_EDIT_COMMAND(buffer_save);
 DEFINE_EDIT_COMMAND(editor_quit);
 DEFINE_EDIT_COMMAND(display_way_of_quit);
