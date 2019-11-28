@@ -195,3 +195,8 @@ void handle_key(int c) {
         break;
     }
 }
+
+void handle_rune(Rune r) {
+    memset(key_buf, 0, sizeof(key_buf));
+    buffer_insert(current_buffer, r);
+}

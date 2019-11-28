@@ -191,12 +191,48 @@ void force_redraw_editor(void) {
 }
 
 void editor_main_loop() {
+    Rune buf;
+    memset(buf, 0, sizeof(buf));
+    unsigned int n_byte;
+    char broken;
     for (;;) {
         if (editor_exited) break;
 
         redraw_editor();
 
-        handle_key((char)tgetc());
+        unsigned char c = (unsigned char)tgetc();
+        if ((c >> 7 & 1) == 0)
+            n_byte = 1;
+        else if ((c >> 5 & 0b111) == 0b110)
+            n_byte = 2;
+        else if ((c >> 4 & 0b1111) == 0b1110)
+            n_byte = 3;
+        else if ((c >> 3 & 0b11111) == 0b11110)
+            n_byte = 4;
+        else {
+            n_byte = 0;
+        }
+
+        if (n_byte == 1)
+            handle_key(c);
+        else if (1 < n_byte && n_byte <= 4) {
+            buf[0] = c;
+
+            broken = 0;
+            for (--n_byte; n_byte > 0; --n_byte) {
+                c = (unsigned char)tgetc();
+                if ((c >> 6 & 0b11) != 0b10) {
+                    broken = 1;
+
+                    break;
+                }
+
+                buf[sizeof(Rune) - n_byte - 1] = c;
+            }
+
+            if (!broken) handle_rune(buf);
+            memset(buf, 0, sizeof(Rune));
+        }
     }
 }
 

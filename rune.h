@@ -3,12 +3,12 @@
 
 #include <string.h>
 
-typedef char Rune[4];
+typedef unsigned char Rune[4];
 
 /* Hold a unicode character with its display attributes. */
 typedef struct {
     /* Holds unicode one character. */
-    char c[4];
+    unsigned char c[4];
     /* Width of the character when drawn on terminals */
     char display_width;
     /* Terminal decoration attributes. */

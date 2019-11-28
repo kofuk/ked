@@ -17,6 +17,8 @@
 #ifndef KEYBIND_H
 #define KEYBIND_H
 
+#include "rune.h"
+
 /* Initializes local variables that needed for key bind handling, and global key
  * bind. */
 void keybind_set_up(void);
@@ -25,5 +27,8 @@ void keybind_tear_down(void);
 
 /* Handles key input or buffers the key for next input. */
 void handle_key(int c);
+
+/* Clear queued key sequence and insert given Rune to buffer. */
+void handle_rune(Rune r);
 
 #endif
