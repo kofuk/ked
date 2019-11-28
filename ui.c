@@ -158,7 +158,7 @@ void redraw_editor(void) {
             } else {
                 ui_draw_rune(c, x, y);
 
-                for (unsigned int j = x; j < x + c.display_width; ++j)
+                for (unsigned int j = x + 1; j < x + c.display_width; ++j)
                     ui_invalidate_point(j, y);
 
                 x += c.display_width;

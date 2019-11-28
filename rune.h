@@ -27,7 +27,8 @@ static inline int rune_is_lf(AttrRune rune) {
 
 /* Compares two AttrRune's. If r1 == r2, returns 1 otherwise returns 0. */
 static inline int rune_eq(AttrRune r1, AttrRune r2) {
-    return memcmp(&r1, &r2, sizeof(AttrRune)) == 0;
+    return r1.c[0] == r2.c[0] && r1.c[1] == r2.c[1] && r1.c[2] == r2.c[2] &&
+           r1.c[3] == r2.c[3] && r1.attrs == r2.attrs;
 }
 
 typedef struct {
@@ -46,8 +47,10 @@ void attr_runes_set_width(AttrRune *, size_t);
 
 /* Set AttrRune.display_width. */
 static inline void attr_rune_set_width(AttrRune *r) {
-    if ((r->c[0] >> 7 & 1) == 0) r->display_width = 1;
-    else r->display_width = 2;
+    if ((r->c[0] >> 7 & 1) == 0)
+        r->display_width = 1;
+    else
+        r->display_width = 2;
 }
 
 #endif

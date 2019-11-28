@@ -77,7 +77,7 @@ void buffer_cursor_forward_line(Buffer *);
 /* Insertes character to buffer point position. */
 void buffer_insert(Buffer *, Rune);
 
-static inline void buffer_insert_char(Buffer *this, char c) {
+static inline void buffer_insert_char(Buffer *this, unsigned char c) {
     Rune r = {c, 0, 0, 0};
     buffer_insert(this, r);
 }
