@@ -21,7 +21,7 @@ OBJ = buffer.o editcommand.o io.o keybind.o main.o rune.o terminal.o ui.o utilit
 
 .PHONY: all
 all: $(OBJ)
-	$(CC) $(LDFLAGS) -o ked $(OBJ)
+	$(CC) -o ked $(OBJ) $(LDFLAGS)
 
 .PHONY: debug
 debug: CFLAGS = -Wall -Wextra -O0 -g3
