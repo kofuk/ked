@@ -14,15 +14,18 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include <dlfcn.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "buffer.h"
-#include "editcommand.h"
 #include "keybind.h"
+#include "terminal.h"
 #include "ui.h"
 #include "utilities.h"
+
+#include "ked.h"
 
 static char key_buf[8];
 
@@ -126,13 +129,15 @@ static void keybind_add(Keybind *this, const char *key, EditCommand func) {
 
 enum KeyBindState { KEYBIND_NOT_HANDLED, KEYBIND_HANDLED, KEYBIND_WAIT };
 
+static struct EditorEnv *env;
+
 static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
     BindingElement *elem = this->bind;
     while (elem != NULL) {
         if (strncmp(key, elem->key, strlen(key)) == 0) {
             if (strcmp(key, elem->key) == 0) {
                 write_message("");
-                (*(elem->func))(buf);
+                (*(elem->func))(env, buf);
 
                 return KEYBIND_HANDLED;
             }
@@ -153,24 +158,40 @@ static Keybind *global_keybind;
 static void init_global_keybind(void) {
     global_keybind = keybind_create();
 
-    keybind_add(global_keybind, "^[[B", EDIT_COMMAND_PTR(cursor_forward_line));
-    keybind_add(global_keybind, "^[[C", EDIT_COMMAND_PTR(cursor_forward));
-    keybind_add(global_keybind, "^[[D", EDIT_COMMAND_PTR(cursor_back));
-    keybind_add(global_keybind, "^B", EDIT_COMMAND_PTR(cursor_back));
-    keybind_add(global_keybind, "^C", EDIT_COMMAND_PTR(display_way_of_quit));
-    keybind_add(global_keybind, "^D", EDIT_COMMAND_PTR(delete_forward));
-    keybind_add(global_keybind, "^F", EDIT_COMMAND_PTR(cursor_forward));
-    keybind_add(global_keybind, "^H", EDIT_COMMAND_PTR(delete_backward));
-    keybind_add(global_keybind, "^N", EDIT_COMMAND_PTR(cursor_forward_line));
-    keybind_add(global_keybind, "^Q", EDIT_COMMAND_PTR(editor_quit));
-    keybind_add(global_keybind, "^X^C", EDIT_COMMAND_PTR(editor_quit));
-    keybind_add(global_keybind, "^X^S", EDIT_COMMAND_PTR(buffer_save));
-    keybind_add(global_keybind, "^Z", EDIT_COMMAND_PTR(process_stop));
-    keybind_add(global_keybind, "\x7f", EDIT_COMMAND_PTR(delete_backward));
+    void *handle = dlopen("ext/global_keybind/keybind.so", RTLD_NOW | RTLD_NODELETE);
+    if (handle == NULL) {
+        write_message(dlerror());
+
+        return;
+    }
+
+    struct KeybindEntry *ent =
+        (struct KeybindEntry *)dlsym(handle, "ked_keybind_exports");
+    char *err = dlerror();
+    if (err != NULL) {
+        write_message(err);
+
+        return;
+    }
+
+    for (; ent->func; ++ent)
+        keybind_add(global_keybind, ent->name, ent->func);
+
+    dlclose(handle);
 }
 
 void keybind_set_up(void) {
     memset(key_buf, 0, sizeof(key_buf));
+
+    env = malloc(sizeof(struct EditorEnv));
+    env->buffer_cursor_move = buffer_cursor_move;
+    env->buffer_cursor_forward_line = buffer_cursor_forward_line;
+    env->buffer_insert = buffer_insert;
+    env->buffer_delete_backward = buffer_delete_backward;
+    env->buffer_delete_forward = buffer_cursor_forward_line;
+    env->buffer_save = buffer_save;
+    env->exit_editor = exit_editor;
+    env->stop_editor = stop_editor;
 
     init_global_keybind();
 }

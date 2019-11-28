@@ -26,6 +26,7 @@
 
 #include "buffer.h"
 #include "io.h"
+#include "ked.h"
 #include "rune.h"
 #include "terminal.h"
 #include "ui.h"

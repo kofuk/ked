@@ -16,19 +16,22 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra
-LDFLAGS = -lm
-OBJ = buffer.o editcommand.o io.o keybind.o main.o rune.o terminal.o ui.o utilities.o
+LDFLAGS = -lm -ldl
+OBJ = buffer.o io.o keybind.o main.o rune.o terminal.o ui.o utilities.o
 
 .PHONY: all
 all: $(OBJ)
+	$(MAKE) -C ext $(SUBMAKE_TARGET)
 	$(CC) -o ked $(OBJ) $(LDFLAGS)
 
 .PHONY: debug
 debug: CFLAGS = -Wall -Wextra -O0 -g3
+debug: SUBMAKE_TARGET = debug
 debug: all
 
 .PHONY: clean
 clean:
+	$(MAKE) -C ext clean
 	$(RM) $(OBJ) ked
 
 buffer.o: buffer.c buffer.h rune.h
