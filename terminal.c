@@ -22,6 +22,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "rune.h"
 #include "terminal.h"
 #include "ui.h"
 #include "utilities.h"
@@ -36,6 +37,14 @@ void tputc(int c) {
 
     buf[0] = (char)c;
     write(1, buf, 1);
+}
+
+void tputrune(Rune r) {
+    size_t n = 1;
+    for (; n < 4; ++n) {
+        if (r[n] >> 6 != 0b11) break;
+    }
+    write(1, r, n);
 }
 
 void tputs(char *s) { write(1, s, strlen(s)); }

@@ -185,7 +185,7 @@ void handle_key(int c) {
 
     switch (keybind_handle(global_keybind, key_buf, current_buffer)) {
     case KEYBIND_NOT_HANDLED:
-        buffer_insert(current_buffer, (char)c);
+        buffer_insert_char(current_buffer, (char)c);
         // fall through
     case KEYBIND_HANDLED:
         memset(key_buf, 0, sizeof(key_buf));

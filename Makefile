@@ -17,7 +17,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
 LDFLAGS = -lm
-OBJ = buffer.o editcommand.o keybind.o main.o terminal.o ui.o utilities.o
+OBJ = buffer.o editcommand.o io.o keybind.o main.o rune.o terminal.o ui.o utilities.o
 
 .PHONY: all
 all: $(OBJ)
@@ -30,3 +30,9 @@ debug: all
 .PHONY: clean
 clean:
 	$(RM) $(OBJ) ked
+
+buffer.o: buffer.c buffer.h rune.h
+	$(CC) $(CFLAGS)   -c -o $@ $<
+
+ui.o: ui.c buffer.h rune.h
+	$(CC) $(CFLAGS)   -c -o $@ $<

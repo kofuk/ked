@@ -18,6 +18,7 @@
 #define UI_H
 
 #include <stddef.h>
+#include <string.h>
 
 #include "buffer.h"
 #include "terminal.h"
@@ -60,20 +61,31 @@ void set_buffer(Buffer *, enum BufferPosition);
 void select_buffer(Buffer *);
 
 /* Buffer to sync with actual display. */
-extern char **display_buffer;
+extern AttrRune **display_buffer;
 
-#include "terminal.h"
+/* Draws AttrRune with its attrubutes to the termianl if needed. */
+static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
+    if (x > term_width || y > term_height ||
+        rune_eq(display_buffer[y - 1][x - 1], r))
+        return;
 
-/* Draws character to the termianl if needed. */
-#define DRAW_CHAR(c, x, y)                       \
-    do {                                         \
-        if (x > term_width || y > term_height || \
-            display_buffer[y - 1][x - 1] == c)   \
-            break;                               \
-                                                 \
-        move_cursor(x, y);                       \
-        tputc(c);                                \
-        display_buffer[y - 1][x - 1] = c;        \
-    } while (0);
+    move_cursor(x, y);
+    tputrune(r.c);
+    memcpy(&(display_buffer[y - 1][x - 1]), &r, sizeof(AttrRune));
+}
+
+/* Draws char to the terminal if needed. */
+static inline void ui_draw_char(char c, unsigned int x, unsigned int y) {
+    if (x > term_width || y > term_height ||
+        display_buffer[y - 1][x - 1].c[0] == c)
+        return;
+
+    move_cursor(x, y);
+    tputc(c);
+    display_buffer[y - 1][x - 1].c[0] = c;
+    for (int i = 1; i < 4; ++i) {
+        display_buffer[y - 1][x - 1].c[i] = 0;
+    }
+}
 
 #endif

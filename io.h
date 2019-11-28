@@ -14,32 +14,18 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef TERMINAL_H
-#define TERMINAL_H
+#ifndef IO_H
+#define IO_H
 
-#include <stddef.h>
+#include <stdio.h>
 
-#include "rune.h"
+#include "buffer.h"
 
-/* Initializes terminal for editor functionally. */
-void term_set_up(void);
-/* Restores original terminal settings. */
-void term_tear_down(void);
+/* Reads up to given length of file and create an array of AttrRune. Length
+ * pointer will be updated to represent length of array of AttrRune. */
+AttrRune *create_content_buffer(FILE *, size_t *, size_t, enum LineEnding *);
 
-extern size_t term_width;
-extern size_t term_height;
-
-/* Write 1 byte to the terminal. */
-void tputc(int);
-void tputrune(Rune);
-/* Reads 1 byte from stdin and return the value casting to int. */
-int tgetc(void);
-/* Writes escape sequence to the terminal. */
-void esc_write(char *);
-
-void move_cursor(unsigned int, unsigned int);
-
-/* Send SIGSTOP to process. */
-void stop_editor(void);
+/* Saves buffer as UTF-8 text file. */
+int save_buffer_utf8(Buffer *);
 
 #endif

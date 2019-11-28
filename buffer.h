@@ -19,6 +19,8 @@
 
 #include <stddef.h>
 
+#include "rune.h"
+
 /* Amont of buffer allocate once.  */
 #define INIT_GAP_SIZE 1024
 /* Allocates additional buffer when gap is smaller than MIN_GAP_SIZE. */
@@ -34,7 +36,7 @@ typedef struct {
     /* Buffer file path to be saved. */
     char *path;
     /* The content of buffer includes gap. */
-    char *content;
+    AttrRune *content;
     /* Cursor position in this buffer excluding gap area. */
     size_t point;
     /* Buffer size including gap. */
@@ -73,7 +75,13 @@ void buffer_cursor_move(Buffer *, size_t, int);
 void buffer_cursor_forward_line(Buffer *);
 
 /* Insertes character to buffer point position. */
-void buffer_insert(Buffer *, char);
+void buffer_insert(Buffer *, Rune);
+
+static inline void buffer_insert_char(Buffer *this, char c) {
+    Rune r = {c, 0, 0, 0};
+    buffer_insert(this, r);
+}
+
 /* Deletes 1 character backward. */
 void buffer_delete_backward(Buffer *);
 /* Deletes 1 character forward. */
@@ -83,9 +91,11 @@ void buffer_delete_forward(Buffer *);
  * returns 0. */
 int buffer_save(Buffer *);
 
-#define BUFFER_GET_CHAR(buf, point)                              \
-    (buf->gap_start <= point                                     \
-         ? buf->content[point + (buf->gap_end - buf->gap_start)] \
-         : buf->content[point])
+/* Returnes AttrRune on specified point. */
+static inline AttrRune buffer_get_rune(const Buffer *buf, const size_t point) {
+    return buf->gap_start <= point
+               ? buf->content[point + (buf->gap_end - buf->gap_start)]
+               : buf->content[point];
+}
 
 #endif
