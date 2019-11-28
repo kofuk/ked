@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef TERMINAL_H
-#define TERMINAL_H
+#ifndef KED_TERMINAL_H
+#define KED_TERMINAL_H
 
 #include <stddef.h>
 

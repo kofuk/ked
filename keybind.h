@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef KEYBIND_H
-#define KEYBIND_H
+#ifndef KED_KEYBIND_H
+#define KED_KEYBIND_H
 
 #include "rune.h"
 

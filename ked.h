@@ -3,11 +3,11 @@
 
 #include <stddef.h>
 
-#ifndef BUFFER_H
+#ifndef KED_BUFFER_H
 typedef struct _buffer Buffer;
 #endif
 
-#ifndef RUNE_H
+#ifndef KED_RUNE_H
 typedef char Rune[4];
 #endif
 

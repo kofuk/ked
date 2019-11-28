@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef UTILITIES_H
-#define UTILITIES_H
+#ifndef KED_UTILITIES_H
+#define KED_UTILITIES_H
 
 #include <stddef.h>
 

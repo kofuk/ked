@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef IO_H
-#define IO_H
+#ifndef KED_IO_H
+#define KED_IO_H
 
 #include <stdio.h>
 

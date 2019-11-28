@@ -1,5 +1,5 @@
-#ifndef RUNE_H
-#define RUNE_H
+#ifndef KED_RUNE_H
+#define KED_RUNE_H
 
 #include <string.h>
 
