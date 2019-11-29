@@ -1,6 +1,16 @@
 #ifndef KED_INTERNAL_H
 #define KED_INTERNAL_H
 
+// extension.c
+
+/* Initializes variables required for use extension feature. */
+void extension_set_up(void);
+
+/* Executes tear-down routine for each library if it exists then unload the
+ * library. */
+void extension_tear_down(void);
+
+
 // keybind.c
 
 /* Initializes local variables that needed for key bind handling, and global key

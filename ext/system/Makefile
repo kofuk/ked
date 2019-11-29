@@ -16,14 +16,15 @@
 
 CFLAGS = -Wall -Wextra -fPIC -I../../include
 OBJS = editcommand.o
+LDFLAGS = -shared -fPIC
 
-keybind.so: $(OBJS)
-	$(CC) $(OBJS) -o keybind.so -shared $(LDFLAGS)
+system.so: $(OBJS)
+	$(CC) $(OBJS) -o system.so -shared $(LDFLAGS)
 
 .PHONY: debug
 debug: CFLAGS = -Wall -Wextra -fPIC -I../../include -O0 -g3
-debug: keybind.so
+debug: system.so
 
 .PHONY: clean
 clean:
-	$(RM) $(OBJS) keybind.so
+	$(RM) $(OBJS) system.so

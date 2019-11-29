@@ -16,11 +16,12 @@
 
 CC = gcc
 CFLAGS = -fPIC -Wall -Wextra -I../include
-OBJS = buffer.o io.o keybind.o rune.o terminal.o ui.o utilities.o
+OBJS = buffer.o extension.o io.o keybind.o rune.o terminal.o ui.o utilities.o
+LDFLAGS = -shared -lm -ldl
 
 .PHONY: all
 all: $(OBJS)
-	$(CC) -shared -o libked.so $(OBJS)
+	$(CC) -o libked.so $(OBJS) $(LDFLAGS)
 
 .PHON: debug
 debug: CFLAGS = -fPIC -Wall -Wextra -O0 -g3 -I../include

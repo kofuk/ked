@@ -14,14 +14,15 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include "libked/extension.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include <ked/buffer.h>
-#include <ked/ui.h>
 #include <ked/internal.h>
+#include <ked/ui.h>
 
 static void check_term() {
     if (!(isatty(0) || isatty(1) || isatty(2))) {
@@ -56,18 +57,31 @@ int main(int argc, char **argv) {
 
     keybind_set_up();
 
-    Buffer *buf = buffer_create(argv[1], argv[1]);
+    extension_set_up();
 
-    if (buf != NULL) {
-        set_buffer(buf, BUF_MAIN);
-        select_buffer(buf);
+    char system_ext_load_fail = 0;
 
-        editor_main_loop();
+    if (!load_extension("ext/system/system.so")) {
+        system_ext_load_fail = 1;
+    } else {
+        Buffer *buf = buffer_create(argv[1], argv[1]);
+
+        if (buf != NULL) {
+            set_buffer(buf, BUF_MAIN);
+            select_buffer(buf);
+
+            editor_main_loop();
+        }
     }
 
+    extension_tear_down();
     keybind_tear_down();
     ui_tear_down();
     term_tear_down();
+
+    if (system_ext_load_fail) {
+        fputs("Failed to load system extension; Abort.\n", stderr);
+    }
 
     return 0;
 }

@@ -14,24 +14,11 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef KED_H
-#define KED_H
+#ifndef KED_EXTENSION_H
+#define KED_EXTENSION_H
 
-#include <stddef.h>
-
-#include <ked/buffer.h>
-
-#define EDIT_COMMAND_ARG_LIST Buffer *buf
-
-#define DEFINE_EDIT_COMMAND(name) void ec_##name(EDIT_COMMAND_ARG_LIST)
-#define EDIT_COMMAND_PTR(name) ec_##name
-
-typedef void (*EditCommand)(EDIT_COMMAND_ARG_LIST);
-
-// keybind.c
-
-/* Register specified EditCommand as a key handler for specified key sequence.
- * If the same key sequence is registered, this replaces it. */
-void add_global_keybind(const char *, EditCommand);
+/* Loads library from specified path and executes initialize routine if it
+ * exists. */
+int load_extension(const char *);
 
 #endif

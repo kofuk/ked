@@ -122,6 +122,8 @@ Buffer *buffer_create_system(const char *name) {
 }
 
 void buffer_destruct(Buffer *this) {
+    if (this == NULL) return;
+
     free(this->buf_name);
     free(this->path);
     free(this->content);

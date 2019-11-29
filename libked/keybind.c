@@ -129,15 +129,13 @@ static void keybind_add(Keybind *this, const char *key, EditCommand func) {
 
 enum KeyBindState { KEYBIND_NOT_HANDLED, KEYBIND_HANDLED, KEYBIND_WAIT };
 
-static struct EditorEnv *env;
-
 static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
     BindingElement *elem = this->bind;
     while (elem != NULL) {
         if (strncmp(key, elem->key, strlen(key)) == 0) {
             if (strcmp(key, elem->key) == 0) {
                 write_message("");
-                (*(elem->func))(env, buf);
+                (*(elem->func))(buf);
 
                 return KEYBIND_HANDLED;
             }
@@ -155,43 +153,14 @@ static enum KeyBindState keybind_handle(Keybind *this, char *key, Buffer *buf) {
 
 static Keybind *global_keybind;
 
-static void init_global_keybind(void) {
-    global_keybind = keybind_create();
+static void init_global_keybind(void) { global_keybind = keybind_create(); }
 
-    void *handle = dlopen("ext/global_keybind/keybind.so", RTLD_NOW | RTLD_NODELETE);
-    if (handle == NULL) {
-        write_message(dlerror());
-
-        return;
-    }
-
-    struct KeybindEntry *ent =
-        (struct KeybindEntry *)dlsym(handle, "ked_keybind_exports");
-    char *err = dlerror();
-    if (err != NULL) {
-        write_message(err);
-
-        return;
-    }
-
-    for (; ent->func; ++ent)
-        keybind_add(global_keybind, ent->name, ent->func);
-
-    dlclose(handle);
+void add_global_keybind(const char *key, EditCommand func) {
+    keybind_add(global_keybind, key, func);
 }
 
 void keybind_set_up(void) {
     memset(key_buf, 0, sizeof(key_buf));
-
-    env = malloc(sizeof(struct EditorEnv));
-    env->buffer_cursor_move = buffer_cursor_move;
-    env->buffer_cursor_forward_line = buffer_cursor_forward_line;
-    env->buffer_insert = buffer_insert;
-    env->buffer_delete_backward = buffer_delete_backward;
-    env->buffer_delete_forward = buffer_cursor_forward_line;
-    env->buffer_save = buffer_save;
-    env->exit_editor = exit_editor;
-    env->stop_editor = stop_editor;
 
     init_global_keybind();
 }
