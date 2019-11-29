@@ -25,11 +25,12 @@
 #include <unistd.h>
 
 #include <ked/buffer.h>
-#include <ked/io.h>
 #include <ked/ked.h>
 #include <ked/rune.h>
 #include <ked/terminal.h>
 #include <ked/ui.h>
+
+#include "io.h"
 
 Buffer *current_buffer;
 

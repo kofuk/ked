@@ -28,11 +28,6 @@ void editor_main_loop(void);
 /* Requests to exit main loop. */
 void exit_editor(void);
 
-/* Initializes variables neeed to draw the UI. */
-void ui_set_up(void);
-/* Frees all buffer. */
-void ui_tear_down(void);
-
 /* Requests to write message to message area. */
 void write_message(char *);
 

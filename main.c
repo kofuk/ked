@@ -20,9 +20,8 @@
 #include <unistd.h>
 
 #include <ked/buffer.h>
-#include <ked/keybind.h>
-#include <ked/terminal.h>
 #include <ked/ui.h>
+#include <ked/internal.h>
 
 static void check_term() {
     if (!(isatty(0) || isatty(1) || isatty(2))) {

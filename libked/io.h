@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 
-#include "buffer.h"
+#include <ked/buffer.h>
 
 /* Reads up to given length of file and create an array of AttrRune. Length
  * pointer will be updated to represent length of array of AttrRune. */

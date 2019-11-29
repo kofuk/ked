@@ -21,11 +21,6 @@
 
 #include "rune.h"
 
-/* Initializes terminal for editor functionally. */
-void term_set_up(void);
-/* Restores original terminal settings. */
-void term_tear_down(void);
-
 extern size_t term_width;
 extern size_t term_height;
 
