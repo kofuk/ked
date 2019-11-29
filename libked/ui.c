@@ -18,12 +18,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "buffer.h"
-#include "keybind.h"
-#include "rune.h"
-#include "terminal.h"
-#include "ui.h"
-#include "utilities.h"
+#include <ked/buffer.h>
+#include <ked/keybind.h>
+#include <ked/rune.h>
+#include <ked/terminal.h>
+#include <ked/ui.h>
+#include <ked/utilities.h>
 
 #define KEY_ESC 0x1b
 

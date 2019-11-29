@@ -24,12 +24,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "buffer.h"
-#include "io.h"
-#include "ked.h"
-#include "rune.h"
-#include "terminal.h"
-#include "ui.h"
+#include <ked/buffer.h>
+#include <ked/io.h>
+#include <ked/ked.h>
+#include <ked/rune.h>
+#include <ked/terminal.h>
+#include <ked/ui.h>
 
 Buffer *current_buffer;
 

@@ -19,8 +19,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "buffer.h"
-#include "rune.h"
+#include <ked/buffer.h>
+#include <ked/rune.h>
 
 /* Converts given buffer's line ending character to lf, and returnes converted
  * buffer. If returned buffer and given buffer is not equal, this function frees

@@ -14,14 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -fPIC -I../../include
 OBJS = editcommand.o
 
 keybind.so: $(OBJS)
-	$(CC) $(OBJS) -o keybind.so -shared
+	$(CC) $(OBJS) -o keybind.so -shared $(LDFLAGS)
 
 .PHONY: debug
-debug: CFLAGS = -Wall -Wextra -O0 -g3
+debug: CFLAGS = -Wall -Wextra -fPIC -I../../include -O0 -g3
 debug: keybind.so
 
 .PHONY: clean

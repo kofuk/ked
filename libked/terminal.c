@@ -22,10 +22,10 @@
 #include <termios.h>
 #include <unistd.h>
 
-#include "rune.h"
-#include "terminal.h"
-#include "ui.h"
-#include "utilities.h"
+#include <ked/rune.h>
+#include <ked/terminal.h>
+#include <ked/ui.h>
+#include <ked/utilities.h>
 
 static struct termios orig_termios;
 

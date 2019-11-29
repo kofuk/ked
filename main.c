@@ -19,10 +19,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "buffer.h"
-#include "keybind.h"
-#include "terminal.h"
-#include "ui.h"
+#include <ked/buffer.h>
+#include <ked/keybind.h>
+#include <ked/terminal.h>
+#include <ked/ui.h>
 
 static void check_term() {
     if (!(isatty(0) || isatty(1) || isatty(2))) {

@@ -18,7 +18,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "rune.h"
+#include <ked/rune.h>
 
 String *string_create(const char *str) {
     size_t n_rune = 0;

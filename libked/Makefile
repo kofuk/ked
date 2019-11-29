@@ -15,23 +15,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude
-LDFLAGS = -Llibked -lm -ldl -lked
-OBJ = main.o
+CFLAGS = -fPIC -Wall -Wextra -I../include
+OBJS = buffer.o io.o keybind.o rune.o terminal.o ui.o utilities.o
 
 .PHONY: all
-all: $(OBJ)
-	$(MAKE) -C libked $(SUBMAKE_TARGET)
-	$(MAKE) -C ext $(SUBMAKE_TARGET)
-	$(CC) -o ked $(OBJ) $(LDFLAGS)
+all: $(OBJS)
+	$(CC) -shared -o libked.so $(OBJS)
 
-.PHONY: debug
-debug: CFLAGS = -Wall -Wextra -Iinclude -O0 -g3
-debug: SUBMAKE_TARGET = debug
+.PHON: debug
+debug: CFLAGS = -fPIC -Wall -Wextra -O0 -g3 -I../include
 debug: all
 
 .PHONY: clean
 clean:
-	$(MAKE) -C libked clean
-	$(MAKE) -C ext clean
-	$(RM) $(OBJ) ked
+	$(RM) $(OBJS) libked.so

@@ -19,13 +19,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "buffer.h"
-#include "keybind.h"
-#include "terminal.h"
-#include "ui.h"
-#include "utilities.h"
+#include <ked/buffer.h>
+#include <ked/keybind.h>
+#include <ked/terminal.h>
+#include <ked/ui.h>
+#include <ked/utilities.h>
 
-#include "ked.h"
+#include <ked/ked.h>
 
 static char key_buf[8];
 
