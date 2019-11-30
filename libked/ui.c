@@ -22,7 +22,9 @@
 #include <ked/keybind.h>
 #include <ked/rune.h>
 #include <ked/ui.h>
+#include <ked/ked.h>
 
+#include "ked/terminal.h"
 #include "libked.h"
 #include "terminal.h"
 #include "utilities.h"
@@ -319,9 +321,12 @@ void redraw_editor(void) {
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
 }
 
-void force_redraw_editor(void) {
+void ui_invalidate(void) {
     for (size_t i = 0; i < term_height; ++i) {
-        memset(display_buffer[i], ' ', term_width);
+        for (size_t j = 0; j < term_width; ++j) {
+            display_buffer[i][j].c[0] = '\n';
+            display_buffer[i][j].face = NULL;
+        }
     }
 
     redraw_editor();

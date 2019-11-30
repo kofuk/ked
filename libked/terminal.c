@@ -26,6 +26,7 @@
 #include <ked/terminal.h>
 #include <ked/ui.h>
 
+#include "ked/ked.h"
 #include "utilities.h"
 
 static struct termios orig_termios;
@@ -146,7 +147,7 @@ void move_cursor(unsigned int x, unsigned int y) {
 static void resume_editor(int signal) {
     term_set_up();
 
-    force_redraw_editor();
+    ui_invalidate();
 }
 
 #pragma GCC diagnostic pop

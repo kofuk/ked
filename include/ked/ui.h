@@ -34,9 +34,6 @@ void write_message(char *);
 /* Redraws the display area that differs from previous draw. */
 void redraw_editor(void);
 
-/* Clear display buffer and redraw editor. */
-void force_redraw_editor(void);
-
 void move_cursor_editor(unsigned int, unsigned int);
 
 /* Creates buffer for header line and message line. */
