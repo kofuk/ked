@@ -67,6 +67,10 @@ void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg) {
     free(b);
 }
 
+void reset_graphic_attrs(void) {
+    tputs("\e[0m");
+}
+
 void esc_write(char *s) {
     tputc('\e');
     tputs(s);

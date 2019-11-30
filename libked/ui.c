@@ -27,8 +27,6 @@
 #include "terminal.h"
 #include "utilities.h"
 
-#define KEY_ESC 0x1b
-
 static int editor_exited;
 
 Buffer *current_buffer;
@@ -39,15 +37,29 @@ static AttrRune **display_buffer;
 static unsigned int current_attribute = 0;
 
 /* Draws char to the terminal if needed. */
-static inline void ui_draw_char(unsigned char c, unsigned int x,
-                                unsigned int y) {
+static inline void ui_draw_char(unsigned char c, unsigned int attrs,
+                                unsigned int x, unsigned int y) {
     if (x > term_width || y > term_height ||
-        display_buffer[y - 1][x - 1].c[0] == c || c == '\n')
+        (display_buffer[y - 1][x - 1].c[0] == c &&
+         font_attr_eq(attrs, display_buffer[y - 1][x - 1].attrs)) ||
+        c == '\n')
         return;
+
+    if (!font_attr_eq(attrs, current_attribute)) {
+        if (RUNE_FACE_USE_DEFAULT(attrs)) {
+            reset_graphic_attrs();
+        } else {
+            set_graphic_attrs(RUNE_FONT_ATTR(attrs), RUNE_FG_ATTR(attrs),
+                              RUNE_BG_ATTR(attrs));
+        }
+
+        current_attribute = attrs;
+    }
 
     move_cursor(x, y);
     tputc_printable(c);
     display_buffer[y - 1][x - 1].c[0] = c;
+    display_buffer[y - 1][x - 1].attrs = attrs;
     for (int i = 1; i < 4; ++i) {
         display_buffer[y - 1][x - 1].c[i] = 0;
     }
@@ -60,7 +72,12 @@ static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
         return;
 
     if (!font_attr_eq(r.attrs, current_attribute)) {
-        set_graphic_attrs(RUNE_FONT_ATTR(r), RUNE_FG_ATTR(r), RUNE_BG_ATTR(r));
+        if (RUNE_FACE_USE_DEFAULT(r.attrs)) {
+            reset_graphic_attrs();
+        } else {
+            set_graphic_attrs(RUNE_FONT_ATTR(r.attrs), RUNE_FG_ATTR(r.attrs),
+                              RUNE_BG_ATTR(r.attrs));
+        }
 
         current_attribute = r.attrs;
     }
@@ -76,6 +93,42 @@ static inline void ui_invalidate_point(unsigned int x, unsigned int y) {
 
     /* \n will never drawn. */
     display_buffer[y - 1][x - 1].c[0] = '\n';
+}
+
+static void (**buffer_change_listeners)(Buffer **, size_t);
+static size_t buffer_change_listeners_i;
+static size_t buffer_change_listeners_len;
+
+void add_buffer_change_listener(void (*func)(Buffer **, size_t)) {
+    for (size_t i = 0; i < buffer_change_listeners_i; ++i)
+        if (buffer_change_listeners[i] == func) return;
+
+    if (buffer_change_listeners_i >= buffer_change_listeners_len) {
+        if (buffer_change_listeners_len <= 64) {
+            buffer_change_listeners_len = buffer_change_listeners_len << 2;
+        } else {
+            buffer_change_listeners_len += 64;
+        }
+
+        buffer_change_listeners =
+            realloc(buffer_change_listeners, buffer_change_listeners_len);
+    }
+
+    buffer_change_listeners[buffer_change_listeners_i] = func;
+    ++buffer_change_listeners_i;
+}
+
+void remove_buffer_change_listener(void (*func)(Buffer **, size_t)) {
+    for (size_t i = 0; i < buffer_change_listeners_i; ++i) {
+        if (func == buffer_change_listeners[i]) {
+            memmove(buffer_change_listeners + i,
+                    buffer_change_listeners + i + 1,
+                    buffer_change_listeners_len - i - 1);
+            --buffer_change_listeners_i;
+
+            return;
+        }
+    }
 }
 
 void set_buffer(Buffer *buf, enum BufferPosition pos) {
@@ -102,6 +155,20 @@ void set_buffer(Buffer *buf, enum BufferPosition pos) {
 
         break;
     }
+
+    size_t n_buffer = 0;
+    for (size_t i = 0; i < 3; ++i)
+        if (displayed_buffers != NULL) ++n_buffer;
+
+    Buffer **bufs = malloc(sizeof(Buffer *) * n_buffer);
+    size_t bufs_i = 0;
+    for (size_t i = 0; i < 3; ++i) {
+        bufs[bufs_i] = displayed_buffers[i];
+        ++bufs_i;
+    }
+
+    for (size_t i = 0; i < buffer_change_listeners_i; ++i)
+        (buffer_change_listeners[i])(bufs, n_buffer);
 }
 
 void init_system_buffers(void) {
@@ -161,6 +228,11 @@ void ui_set_up(void) {
 
     displayed_buffers = malloc(sizeof(Buffer *) * 4);
     memset(displayed_buffers, 0, sizeof(Buffer *) * 4);
+
+    buffer_change_listeners_len = 8;
+    buffer_change_listeners_i = 0;
+    buffer_change_listeners =
+        malloc(sizeof(void (*)(void)) * buffer_change_listeners_len);
 }
 
 void ui_tear_down(void) {
@@ -172,6 +244,8 @@ void ui_tear_down(void) {
         free(display_buffer[i]);
     }
     free(display_buffer);
+
+    free(buffer_change_listeners);
 }
 
 void exit_editor() { editor_exited = 1; }
@@ -194,7 +268,7 @@ void redraw_editor(void) {
 
             if (rune_is_lf(c)) {
                 for (unsigned int j = x; j <= term_width; j++)
-                    ui_draw_char(' ', j, y);
+                    ui_draw_char(' ', buf->default_attrs, j, y);
 
                 ++y;
 
@@ -212,11 +286,11 @@ void redraw_editor(void) {
                     if (!rune_is_lf(next_rune) &&
                         x + next_rune.display_width >= term_width) {
                         if (x + next_rune.display_width == term_width) {
-                            ui_draw_char('\\', x, y);
+                            ui_draw_char('\\', buf->default_attrs, x, y);
                         } else {
-                            ui_draw_char(' ', x, y);
+                            ui_draw_char(' ', buf->default_attrs, x, y);
                             ++x;
-                            ui_draw_char('\\', x, y);
+                            ui_draw_char('\\', buf->default_attrs, x, y);
                         }
 
                         x = 1;
@@ -230,7 +304,7 @@ void redraw_editor(void) {
 
         for (unsigned int j = y; j < buf->display_range_y_end; j++) {
             for (unsigned int k = x; k <= term_width; k++)
-                ui_draw_char(' ', k, j);
+                ui_draw_char(' ', buf->default_attrs, k, j);
             x = 1;
         }
     }

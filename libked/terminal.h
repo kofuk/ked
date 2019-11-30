@@ -20,4 +20,7 @@
 /* Set terminal graphic mode to specified value. */
 void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg);
 
+/* Reset terminal graphic mode. */
+void reset_graphic_attrs(void);
+
 #endif

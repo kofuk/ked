@@ -28,18 +28,27 @@ typedef struct {
     /* Width of the character when drawn on terminals */
     unsigned char display_width;
     /* Terminal decoration attributes.
-     * | LSB              ->                  MSB |
-     * | protected | face   | fg color | bg color |
-     * |-----------+--------+----------+----------|
-     * | 1 bit     | 8 bits | 8 bits   | 8 bits   | */
+     * | MSB                     ->                         LSB |
+     * | protected | use default | face   | fg color | bg color |
+     * |-----------+-------------+--------+----------+----------|
+     * | 1 bit     | 1 bit       | 4 bits | 3 bits   | 3 bits   | */
     unsigned int attrs;
 } AttrRune;
 
 /* Whether the rune is write protected or not. */
-#define RUNE_PROTECTED(rune) ((rune).attrs & 1)
-#define RUNE_FONT_ATTR(rune) (((rune).attrs >> 1) & 0xff)
-#define RUNE_FG_ATTR(rune) (((rune).attrs >> 9) & 0xff)
-#define RUNE_BG_ATTR(rune) (((rune).attrs >> 17) & 0xff)
+#define RUNE_PROTECTED(attrs) (((attrs) >> 11) & 0x1)
+#define RUNE_FACE_USE_DEFAULT(attrs) (((attrs) >> 10) & 0x1)
+#define RUNE_FONT_ATTR(attrs) (((attrs) >> 6) & 0xf)
+#define RUNE_FG_ATTR(attrs) (((attrs) >> 3) & 0x7)
+#define RUNE_BG_ATTR(attrs) ((attrs) & 0x7)
+
+static inline unsigned int rune_make_attrs(unsigned int protect,
+                                           unsigned int use_default_face,
+                                           unsigned int font, unsigned int fg,
+                                           unsigned int bg) {
+    return ((protect & 0x1) << 11) | ((use_default_face & 0x1) << 10) |
+           ((font & 0xf) << 6) | ((fg & 0x7) << 3) | ((bg & 0x7));
+}
 
 /* Check if given rune is ASCII \n. */
 static inline int rune_is_lf(AttrRune rune) {
@@ -50,7 +59,9 @@ static inline int rune_is_lf(AttrRune rune) {
 /* Compares two AttrRune's. If r1 == r2, returns 1 otherwise returns 0. */
 static inline int attr_rune_eq(AttrRune r1, AttrRune r2) {
     return r1.c[0] == r2.c[0] && r1.c[1] == r2.c[1] && r1.c[2] == r2.c[2] &&
-           r1.c[3] == r2.c[3] && r1.attrs == r2.attrs;
+           r1.c[3] == r2.c[3] &&
+           ((RUNE_FACE_USE_DEFAULT(r1.attrs) && RUNE_FACE_USE_DEFAULT(r2.attrs)) ||
+            r1.attrs == r2.attrs);
 }
 
 /* Compares two Rune's. If r1 -- r2, returns 1 otherwise returns 0. */

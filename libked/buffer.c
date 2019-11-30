@@ -47,6 +47,10 @@ static Buffer *buffer_create_existing_file(const char *path,
         create_content_buffer(f, &size, INIT_GAP_SIZE, &lend);
     fclose(f);
 
+    // reset face
+    unsigned int default_face = rune_make_attrs(0, 1, 0, 1, 1);
+    for (size_t i = INIT_GAP_SIZE; i < size; ++i) content_buf[i].attrs = default_face;
+
     size_t path_len = strlen(path);
     char *path_buf = malloc(sizeof(char) * (path_len + 1));
     memcpy(path_buf, path, path_len + 1);
@@ -66,6 +70,7 @@ static Buffer *buffer_create_existing_file(const char *path,
     result->gap_end = INIT_GAP_SIZE;
     result->line_ending = lend;
     result->modified = 0;
+    result->default_attrs = rune_make_attrs(0, 1, 0, 0, 0);
     result->cursor_x = 1;
     result->cursor_y = 1;
 
@@ -99,6 +104,7 @@ Buffer *buffer_create(const char *path, const char *buf_name) {
     result->buf_size = INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
+    result->default_attrs = rune_make_attrs(0, 1, 0, 0, 0);
     result->cursor_x = 1;
     result->cursor_y = 1;
 
@@ -115,6 +121,7 @@ Buffer *buffer_create_system(const char *name) {
     result->buf_size = INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
+    result->default_attrs = rune_make_attrs(0, 0, 1, 0, 7);
     result->cursor_x = 1;
     result->cursor_y = 1;
 
@@ -267,7 +274,7 @@ void buffer_insert(Buffer *this, Rune r) {
         buffer_expand(this, INIT_GAP_SIZE);
 
     memcpy(this->content[this->gap_start].c, r, sizeof(Rune));
-    this->content[this->gap_start].attrs = 0;
+    this->content[this->gap_start].attrs = this->default_attrs;
     attr_rune_set_width(this->content + this->gap_start);
 
     ++(this->gap_start);
@@ -285,7 +292,7 @@ void buffer_delete_backward(Buffer *this) {
         return;
     }
 
-    if (RUNE_PROTECTED(buffer_get_rune(this, this->point - 1))) {
+    if (RUNE_PROTECTED(buffer_get_rune(this, this->point - 1).attrs)) {
         write_message("Write protected.");
 
         return;
@@ -304,7 +311,7 @@ void buffer_delete_forward(Buffer *this) {
         return;
     }
 
-    if (RUNE_PROTECTED(buffer_get_rune(this, this->point))) {
+    if (RUNE_PROTECTED(buffer_get_rune(this, this->point).attrs)) {
         write_message("Write protected.");
 
         return;
