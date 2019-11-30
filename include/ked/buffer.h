@@ -56,8 +56,8 @@ typedef struct {
     size_t display_range_y_end;
     /* Whether this buffer is modified of not. */
     int modified;
-    /* Default text attribute. */
-    unsigned int default_attrs;
+    /* Default face name. */
+    const char *default_face;
     /* Cursor X position in display area. */
     unsigned int cursor_x;
     /* Cursor Y position in display area. */

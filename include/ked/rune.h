@@ -27,28 +27,18 @@ typedef struct {
     unsigned char c[4];
     /* Width of the character when drawn on terminals */
     unsigned char display_width;
-    /* Terminal decoration attributes.
-     * | MSB                     ->                         LSB |
-     * | protected | use default | face   | fg color | bg color |
-     * |-----------+-------------+--------+----------+----------|
-     * | 1 bit     | 1 bit       | 4 bits | 8 bits   | 8 bits   | */
+    /* Rune attributes.
+     * | MSB    LSB |
+     * | protected  |
+     * |------------|
+     * | 1 bit      | */
     unsigned int attrs;
+    /* Face name this Rune should use. */
+    const char *face;
 } AttrRune;
 
 /* Whether the rune is write protected or not. */
 #define RUNE_PROTECTED(attrs) (((attrs) >> 21) & 0x1)
-#define RUNE_FACE_USE_DEFAULT(attrs) (((attrs) >> 20) & 0x1)
-#define RUNE_FONT_ATTR(attrs) (((attrs) >> 16) & 0xf)
-#define RUNE_FG_ATTR(attrs) (((attrs) >> 8) & 0xff)
-#define RUNE_BG_ATTR(attrs) ((attrs) & 0xff)
-
-static inline unsigned int rune_make_attrs(unsigned int protect,
-                                           unsigned int use_default_face,
-                                           unsigned int font, unsigned int fg,
-                                           unsigned int bg) {
-    return ((protect & 0x1) << 21) | ((use_default_face & 0x1) << 20) |
-           ((font & 0xf) << 16) | ((fg & 0xff) << 8) | (bg & 0xff);
-}
 
 /* Check if given rune is ASCII \n. */
 static inline int rune_is_lf(AttrRune rune) {
@@ -58,10 +48,14 @@ static inline int rune_is_lf(AttrRune rune) {
 
 /* Compares two AttrRune's. If r1 == r2, returns 1 otherwise returns 0. */
 static inline int attr_rune_eq(AttrRune r1, AttrRune r2) {
-    return r1.c[0] == r2.c[0] && r1.c[1] == r2.c[1] && r1.c[2] == r2.c[2] &&
-           r1.c[3] == r2.c[3] &&
-           ((RUNE_FACE_USE_DEFAULT(r1.attrs) && RUNE_FACE_USE_DEFAULT(r2.attrs)) ||
-            r1.attrs == r2.attrs);
+    if ((r1.face == NULL && r2.face != NULL) ||
+        (r1.face != NULL && r2.face == NULL))
+        return 0;
+    else if (r1.face == NULL && r2.face == NULL)
+        return 1;
+    else
+        return r1.c[0] == r2.c[0] && r1.c[1] == r2.c[1] && r1.c[2] == r2.c[2] &&
+               r1.c[3] == r2.c[3] && strcmp(r1.face, r2.face) == 0;
 }
 
 /* Compares two Rune's. If r1 -- r2, returns 1 otherwise returns 0. */
@@ -70,8 +64,15 @@ static inline int rune_eq(Rune r1, Rune r2) {
 }
 
 /* Returns whether to attrs are equal except of protected state. */
-static inline int font_attr_eq(int attr1, int attr2) {
-    return (attr1 & 0x1fffffe) == (attr2 & 0x1fffffe);
+static inline int font_attr_eq(const char *face_name_1,
+                               const char *face_name_2) {
+    if ((face_name_1 == NULL && face_name_2 != NULL) ||
+        (face_name_1 != NULL && face_name_2 == NULL)) {
+        return 0;
+    } else if (face_name_1 == NULL && face_name_2 == NULL)
+        return 1;
+    else
+        return strcmp(face_name_1, face_name_2) == 0;
 }
 
 typedef struct {

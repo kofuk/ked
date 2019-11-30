@@ -36,6 +36,17 @@ void add_buffer_entry_change_listener(void (*func)(Buffer **, size_t));
 /* Remove buffer change listener. */
 void remove_buffer_entry_change_listener(void (*func)(Buffer **, size_t));
 
+// face.c
+
+/* Adds or replaces face. */
+void face_add(const char *name, const char *face);
+
+#define FACE_COLOR_256(fg, bg) "\e[0m\e[38;5;" #fg "m\e[48;5;" #bg "m"
+#define FACE_ATTR_COLOR_256(attr, fg, bg) "\e[" #attr "m\e[38;5;" #fg "m\e[48;5;" #bg "m"
+
+/* Set face used when specified face not found in storage. */
+void face_set_default(const char *face);
+
 // keybind.c
 
 /* Register specified EditCommand as a key handler for specified key sequence.

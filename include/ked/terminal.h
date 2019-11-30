@@ -24,18 +24,6 @@
 extern size_t term_width;
 extern size_t term_height;
 
-/* Write 1 byte to the terminal. */
-void tputc(int);
-/* Put specified character in printable form. */
-void tputc_printable(unsigned char);
-void tputrune(Rune);
-/* Reads 1 byte from stdin and return the value casting to int. */
-int tgetc(void);
-/* Writes escape sequence to the terminal. */
-void esc_write(char *);
-
-void move_cursor(unsigned int, unsigned int);
-
 /* Send SIGSTOP to process. */
 void stop_editor(void);
 

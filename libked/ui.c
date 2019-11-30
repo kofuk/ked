@@ -21,9 +21,9 @@
 #include <ked/buffer.h>
 #include <ked/keybind.h>
 #include <ked/rune.h>
-#include <ked/terminal.h>
 #include <ked/ui.h>
 
+#include "libked.h"
 #include "terminal.h"
 #include "utilities.h"
 
@@ -34,57 +34,56 @@ Buffer **displayed_buffers;
 
 static AttrRune **display_buffer;
 
-static unsigned int current_attribute = 0;
+static const char *current_face;
 
 /* Draws char to the terminal if needed. */
-static inline void ui_draw_char(unsigned char c, unsigned int attrs,
+static inline void ui_draw_char(unsigned char c, const char *face,
                                 unsigned int x, unsigned int y) {
     if (x > term_width || y > term_height ||
         (display_buffer[y - 1][x - 1].c[0] == c &&
-         font_attr_eq(attrs, display_buffer[y - 1][x - 1].attrs)) ||
+         font_attr_eq(face, display_buffer[y - 1][x - 1].face)) ||
         c == '\n')
         return;
 
-    if (!font_attr_eq(attrs, current_attribute)) {
-        if (RUNE_FACE_USE_DEFAULT(attrs)) {
-            reset_graphic_attrs();
-        } else {
-            set_graphic_attrs(RUNE_FONT_ATTR(attrs), RUNE_FG_ATTR(attrs),
-                              RUNE_BG_ATTR(attrs));
-        }
+    if (!font_attr_eq(face, current_face)) {
+        tputs(face_lookup(face));
 
-        current_attribute = attrs;
+        current_face = face;
     }
 
     move_cursor(x, y);
     tputc_printable(c);
     display_buffer[y - 1][x - 1].c[0] = c;
-    display_buffer[y - 1][x - 1].attrs = attrs;
+    display_buffer[y - 1][x - 1].face = face;
     for (int i = 1; i < 4; ++i) {
         display_buffer[y - 1][x - 1].c[i] = 0;
     }
 }
 
 /* Draws AttrRune with its attrubutes to the termianl if needed. */
-static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
+static inline void ui_draw_rune(AttrRune r, const char *default_face,
+                                unsigned int x, unsigned int y) {
+    const char *face = r.face;
+    if (face == NULL) {
+        face = default_face;
+    }
+
     if (x > term_width || y > term_height ||
-        attr_rune_eq(display_buffer[y - 1][x - 1], r) || r.c[0] == '\n')
+        (rune_eq(display_buffer[y - 1][x - 1].c, r.c) &&
+         font_attr_eq(face, display_buffer[y - 1][x - 1].face)) ||
+        r.c[0] == '\n')
         return;
 
-    if (!font_attr_eq(r.attrs, current_attribute)) {
-        if (RUNE_FACE_USE_DEFAULT(r.attrs)) {
-            reset_graphic_attrs();
-        } else {
-            set_graphic_attrs(RUNE_FONT_ATTR(r.attrs), RUNE_FG_ATTR(r.attrs),
-                              RUNE_BG_ATTR(r.attrs));
-        }
+    if (!font_attr_eq(r.face, current_face)) {
+        tputs(face_lookup(r.face));
 
-        current_attribute = r.attrs;
+        current_face = r.face;
     }
 
     move_cursor(x, y);
     tputrune(r.c);
     memcpy(&(display_buffer[y - 1][x - 1]), &r, sizeof(AttrRune));
+    display_buffer[y - 1][x - 1].face = face;
 }
 
 /* Make next drawing in the position to be redrawn. */
@@ -231,7 +230,7 @@ void ui_set_up(void) {
         memset(display_buffer[i], 0, term_width);
 
         for (size_t j = 0; j < term_width; ++j)
-            display_buffer[i][j].c[0] = ' ';
+            display_buffer[i][j].c[0] = '\n';
     }
 
     displayed_buffers = malloc(sizeof(Buffer *) * 4);
@@ -276,13 +275,13 @@ void redraw_editor(void) {
 
             if (rune_is_lf(c)) {
                 for (unsigned int j = x; j <= term_width; j++)
-                    ui_draw_char(' ', buf->default_attrs, j, y);
+                    ui_draw_char(' ', buf->default_face, j, y);
 
                 ++y;
 
                 x = 1;
             } else {
-                ui_draw_rune(c, x, y);
+                ui_draw_rune(c, buf->default_face, x, y);
 
                 for (unsigned int j = x + 1; j < x + c.display_width; ++j)
                     ui_invalidate_point(j, y);
@@ -294,11 +293,11 @@ void redraw_editor(void) {
                     if (!rune_is_lf(next_rune) &&
                         x + next_rune.display_width >= term_width) {
                         if (x + next_rune.display_width == term_width) {
-                            ui_draw_char('\\', buf->default_attrs, x, y);
+                            ui_draw_char('\\', buf->default_face, x, y);
                         } else {
-                            ui_draw_char(' ', buf->default_attrs, x, y);
+                            ui_draw_char(' ', buf->default_face, x, y);
                             ++x;
-                            ui_draw_char('\\', buf->default_attrs, x, y);
+                            ui_draw_char('\\', buf->default_face, x, y);
                         }
 
                         x = 1;
@@ -312,7 +311,7 @@ void redraw_editor(void) {
 
         for (unsigned int j = y; j < buf->display_range_y_end; j++) {
             for (unsigned int k = x; k <= term_width; k++)
-                ui_draw_char(' ', buf->default_attrs, k, j);
+                ui_draw_char(' ', buf->default_face, k, j);
             x = 1;
         }
     }

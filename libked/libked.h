@@ -14,28 +14,10 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef TERMINAL_H
-#define TERMINAL_H
+#ifndef LIBKED_H
+#define LIBKED_H
 
-#include <ked/rune.h>
-
-/* Write 1 byte to the terminal. */
-void tputc(int);
-/* Put specified character in printable form. */
-void tputc_printable(unsigned char);
-void tputrune(Rune);
-void tputs(const char *);
-/* Reads 1 byte from stdin and return the value casting to int. */
-int tgetc(void);
-/* Writes escape sequence to the terminal. */
-void esc_write(char *);
-
-void move_cursor(unsigned int, unsigned int);
-
-/* Set terminal graphic mode to specified value. */
-void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg);
-
-/* Reset terminal graphic mode. */
-void reset_graphic_attrs(void);
+/* Finds face associated with the name. */
+const char *face_lookup(const char *name);
 
 #endif
