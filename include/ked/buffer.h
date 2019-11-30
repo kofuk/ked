@@ -93,6 +93,19 @@ void buffer_delete_forward(Buffer *);
 /* Scroll for n lines vertically to forward or backward. */
 void buffer_scroll(Buffer *, size_t, char);
 
+struct SearchResult {
+    /* Point of the occurrence begins. Inclusive. */
+    size_t start;
+    /* Point of the occurrence ends. Exclusive. */
+    size_t end;
+};
+
+/* Searches given string from the buffer (after start_point), and saves the
+ * result to given SearchResult struct. On success, returns 1, and on failure,
+ * it returns 0. */
+int buffer_search(Buffer *this, size_t start_point, String *search,
+                  char forward, struct SearchResult *result);
+
 /* Saves buffer to buffer file path. On success, this returns 1, and on failure,
  * returns 0. */
 int buffer_save(Buffer *);

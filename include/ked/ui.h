@@ -61,7 +61,7 @@ extern AttrRune **display_buffer;
 /* Draws AttrRune with its attrubutes to the termianl if needed. */
 static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
     if (x > term_width || y > term_height ||
-        rune_eq(display_buffer[y - 1][x - 1], r) || r.c[0] == '\n')
+        attr_rune_eq(display_buffer[y - 1][x - 1], r) || r.c[0] == '\n')
         return;
 
     move_cursor(x, y);

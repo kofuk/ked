@@ -42,9 +42,14 @@ static inline int rune_is_lf(AttrRune rune) {
 }
 
 /* Compares two AttrRune's. If r1 == r2, returns 1 otherwise returns 0. */
-static inline int rune_eq(AttrRune r1, AttrRune r2) {
+static inline int attr_rune_eq(AttrRune r1, AttrRune r2) {
     return r1.c[0] == r2.c[0] && r1.c[1] == r2.c[1] && r1.c[2] == r2.c[2] &&
            r1.c[3] == r2.c[3] && r1.attrs == r2.attrs;
+}
+
+/* Compares two Rune's. If r1 -- r2, returns 1 otherwise returns 0. */
+static inline int rune_eq(Rune r1, Rune r2) {
+    return r1[0] == r2[0] && r1[1] == r2[1] && r1[2] == r2[2] && r1[3] == r2[3];
 }
 
 typedef struct {

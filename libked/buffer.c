@@ -335,6 +335,66 @@ void buffer_scroll(Buffer *this, size_t n, char forward) {
     }
 }
 
+int buffer_search(Buffer *this, size_t start_point, String *search,
+                  char forward, struct SearchResult *result) {
+    if (search->len == 0) {
+        result->start = start_point;
+        result->end = start_point + 1;
+
+        return 1;
+    }
+
+    if (forward) {
+        size_t search_i = 0;
+        for (size_t i = start_point;
+             i < this->buf_size - (this->gap_end - this->gap_start); ++i) {
+            if (rune_eq(search->str[search_i], buffer_get_rune(this, i).c)) {
+                ++search_i;
+
+                if (search_i >= search->len) {
+                    result->start = i - (search->len - 1);
+                    result->end = i + 1;
+
+                    return 1;
+                }
+            } else if (search_i != 0) {
+                i -= (search_i - 1);
+                search_i = 0;
+            }
+        }
+    } else {
+        size_t search_i = search->len - 1;
+        size_t i = start_point;
+        for (; i != 0; --i) {
+            if (rune_eq(search->str[search_i], buffer_get_rune(this, i).c)) {
+                --search_i;
+
+                if (search_i == 0) {
+                    --i;
+
+                    break;
+                }
+            } else if (search_i != search->len - 1) {
+                i += (search->len - search_i);
+                search_i = search->len - 1;
+            }
+        }
+
+        if (rune_eq(search->str[search_i], buffer_get_rune(this, i).c)) {
+            if (search_i == 0) {
+                result->start = i;
+                result->end = i + search->len;
+
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
 int buffer_save(Buffer *this) {
     if (!this->modified) {
         write_message("Buffer is not modified.");
