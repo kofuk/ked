@@ -14,22 +14,10 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdlib.h>
+#ifndef TERMINAL_H
+#define TERMINAL_H
 
-#include "utilities.h"
+/* Set terminal graphic mode to specified value. */
+void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg);
 
-char *itoa(unsigned int num) {
-    int n = num != 0 ? (unsigned int)log10((double)num) + 2 : 2;
-    char *result = malloc(sizeof(char) * (unsigned int)n);
-
-    for (int i = n - 2; i >= 0; i--) {
-        result[i] = '0' + num % 10;
-        num /= 10;
-    }
-
-    result[n - 1] = 0;
-
-    return result;
-}
+#endif

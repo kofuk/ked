@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef UI_H
-#define UI_H
+#ifndef KED_UI_H
+#define KED_UI_H
 
 #include <stddef.h>
 #include <string.h>
@@ -55,40 +55,4 @@ void set_buffer(Buffer *, enum BufferPosition);
 /* Forcuses buffer. */
 void select_buffer(Buffer *);
 
-/* Buffer to sync with actual display. */
-extern AttrRune **display_buffer;
-
-/* Draws AttrRune with its attrubutes to the termianl if needed. */
-static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
-    if (x > term_width || y > term_height ||
-        attr_rune_eq(display_buffer[y - 1][x - 1], r) || r.c[0] == '\n')
-        return;
-
-    move_cursor(x, y);
-    tputrune(r.c);
-    memcpy(&(display_buffer[y - 1][x - 1]), &r, sizeof(AttrRune));
-}
-
-/* Draws char to the terminal if needed. */
-static inline void ui_draw_char(unsigned char c, unsigned int x,
-                                unsigned int y) {
-    if (x > term_width || y > term_height ||
-        display_buffer[y - 1][x - 1].c[0] == c || c == '\n')
-        return;
-
-    move_cursor(x, y);
-    tputc_printable(c);
-    display_buffer[y - 1][x - 1].c[0] = c;
-    for (int i = 1; i < 4; ++i) {
-        display_buffer[y - 1][x - 1].c[i] = 0;
-    }
-}
-
-/* Make next drawing in the position to be redrawn. */
-static inline void ui_invalidate_point(unsigned int x, unsigned int y) {
-    if (x > term_width || y >= term_height) return;
-
-    /* \n will never drawn. */
-    display_buffer[y - 1][x - 1].c[0] = '\n';
-}
 #endif

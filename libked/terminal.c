@@ -25,7 +25,8 @@
 #include <ked/rune.h>
 #include <ked/terminal.h>
 #include <ked/ui.h>
-#include <ked/utilities.h>
+
+#include "utilities.h"
 
 static struct termios orig_termios;
 
@@ -34,13 +35,9 @@ size_t term_height;
 
 void tputc(int c) { write(1, &c, 1); }
 
-void tputc_printable(unsigned char c) {
-    char_write_printable(1, c);
-}
+void tputc_printable(unsigned char c) { char_write_printable(1, c); }
 
-void tputrune(Rune r) {
-    rune_write_printable(1, r);
-}
+void tputrune(Rune r) { rune_write_printable(1, r); }
 
 void tputs(char *s) { write(1, s, strlen(s)); }
 
@@ -50,6 +47,24 @@ int tgetc(void) {
     read(1, buf, 1);
 
     return buf[0];
+}
+
+void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg) {
+    char *t = itoa(text);
+    char *f = itoa(fg);
+    char *b = itoa(bg);
+
+    tputs("\e[");
+    tputs(t);
+    tputs(";3");
+    tputs(f);
+    tputs(";4");
+    tputs(b);
+    tputs("m");
+
+    free(t);
+    free(f);
+    free(b);
 }
 
 void esc_write(char *s) {

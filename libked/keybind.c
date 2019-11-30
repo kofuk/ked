@@ -23,9 +23,10 @@
 #include <ked/keybind.h>
 #include <ked/terminal.h>
 #include <ked/ui.h>
-#include <ked/utilities.h>
 
 #include <ked/ked.h>
+
+#include "utilities.h"
 
 static char key_buf[8];
 

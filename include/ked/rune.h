@@ -32,14 +32,14 @@ typedef struct {
      * | protected | face   | fg color | bg color |
      * |-----------+--------+----------+----------|
      * | 1 bit     | 8 bits | 8 bits   | 8 bits   | */
-    int attrs;
+    unsigned int attrs;
 } AttrRune;
 
 /* Whether the rune is write protected or not. */
 #define RUNE_PROTECTED(rune) ((rune).attrs & 1)
 #define RUNE_FONT_ATTR(rune) (((rune).attrs >> 1) & 0xff)
 #define RUNE_FG_ATTR(rune) (((rune).attrs >> 9) & 0xff)
-#define RUNE_BF_ATTR(rune) (((rune).attrs >> 17) & 0xff)
+#define RUNE_BG_ATTR(rune) (((rune).attrs >> 17) & 0xff)
 
 /* Check if given rune is ASCII \n. */
 static inline int rune_is_lf(AttrRune rune) {
@@ -56,6 +56,11 @@ static inline int attr_rune_eq(AttrRune r1, AttrRune r2) {
 /* Compares two Rune's. If r1 -- r2, returns 1 otherwise returns 0. */
 static inline int rune_eq(Rune r1, Rune r2) {
     return r1[0] == r2[0] && r1[1] == r2[1] && r1[2] == r2[2] && r1[3] == r2[3];
+}
+
+/* Returns whether to attrs are equal except of protected state. */
+static inline int font_attr_eq(int attr1, int attr2) {
+    return (attr1 & 0x1fffffe) == (attr2 & 0x1fffffe);
 }
 
 typedef struct {

@@ -23,7 +23,9 @@
 #include <ked/rune.h>
 #include <ked/terminal.h>
 #include <ked/ui.h>
-#include <ked/utilities.h>
+
+#include "terminal.h"
+#include "utilities.h"
 
 #define KEY_ESC 0x1b
 
@@ -32,7 +34,49 @@ static int editor_exited;
 Buffer *current_buffer;
 Buffer **displayed_buffers;
 
-AttrRune **display_buffer;
+static AttrRune **display_buffer;
+
+static unsigned int current_attribute = 0;
+
+/* Draws char to the terminal if needed. */
+static inline void ui_draw_char(unsigned char c, unsigned int x,
+                                unsigned int y) {
+    if (x > term_width || y > term_height ||
+        display_buffer[y - 1][x - 1].c[0] == c || c == '\n')
+        return;
+
+    move_cursor(x, y);
+    tputc_printable(c);
+    display_buffer[y - 1][x - 1].c[0] = c;
+    for (int i = 1; i < 4; ++i) {
+        display_buffer[y - 1][x - 1].c[i] = 0;
+    }
+}
+
+/* Draws AttrRune with its attrubutes to the termianl if needed. */
+static inline void ui_draw_rune(AttrRune r, unsigned int x, unsigned int y) {
+    if (x > term_width || y > term_height ||
+        attr_rune_eq(display_buffer[y - 1][x - 1], r) || r.c[0] == '\n')
+        return;
+
+    if (!font_attr_eq(r.attrs, current_attribute)) {
+        set_graphic_attrs(RUNE_FONT_ATTR(r), RUNE_FG_ATTR(r), RUNE_BG_ATTR(r));
+
+        current_attribute = r.attrs;
+    }
+
+    move_cursor(x, y);
+    tputrune(r.c);
+    memcpy(&(display_buffer[y - 1][x - 1]), &r, sizeof(AttrRune));
+}
+
+/* Make next drawing in the position to be redrawn. */
+static inline void ui_invalidate_point(unsigned int x, unsigned int y) {
+    if (x > term_width || y >= term_height) return;
+
+    /* \n will never drawn. */
+    display_buffer[y - 1][x - 1].c[0] = '\n';
+}
 
 void set_buffer(Buffer *buf, enum BufferPosition pos) {
     switch (pos) {
