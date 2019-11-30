@@ -49,7 +49,8 @@ static Buffer *buffer_create_existing_file(const char *path,
 
     // reset face
     unsigned int default_face = rune_make_attrs(0, 1, 0, 1, 1);
-    for (size_t i = INIT_GAP_SIZE; i < size; ++i) content_buf[i].attrs = default_face;
+    for (size_t i = INIT_GAP_SIZE; i < size; ++i)
+        content_buf[i].attrs = default_face;
 
     size_t path_len = strlen(path);
     char *path_buf = malloc(sizeof(char) * (path_len + 1));
@@ -121,7 +122,7 @@ Buffer *buffer_create_system(const char *name) {
     result->buf_size = INIT_GAP_SIZE;
     result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    result->default_attrs = rune_make_attrs(0, 0, 1, 0, 7);
+    result->default_attrs = rune_make_attrs(0, 1, 0, 0, 0);
     result->cursor_x = 1;
     result->cursor_y = 1;
 

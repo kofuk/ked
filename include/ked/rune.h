@@ -31,23 +31,23 @@ typedef struct {
      * | MSB                     ->                         LSB |
      * | protected | use default | face   | fg color | bg color |
      * |-----------+-------------+--------+----------+----------|
-     * | 1 bit     | 1 bit       | 4 bits | 3 bits   | 3 bits   | */
+     * | 1 bit     | 1 bit       | 4 bits | 8 bits   | 8 bits   | */
     unsigned int attrs;
 } AttrRune;
 
 /* Whether the rune is write protected or not. */
-#define RUNE_PROTECTED(attrs) (((attrs) >> 11) & 0x1)
-#define RUNE_FACE_USE_DEFAULT(attrs) (((attrs) >> 10) & 0x1)
-#define RUNE_FONT_ATTR(attrs) (((attrs) >> 6) & 0xf)
-#define RUNE_FG_ATTR(attrs) (((attrs) >> 3) & 0x7)
-#define RUNE_BG_ATTR(attrs) ((attrs) & 0x7)
+#define RUNE_PROTECTED(attrs) (((attrs) >> 21) & 0x1)
+#define RUNE_FACE_USE_DEFAULT(attrs) (((attrs) >> 20) & 0x1)
+#define RUNE_FONT_ATTR(attrs) (((attrs) >> 16) & 0xf)
+#define RUNE_FG_ATTR(attrs) (((attrs) >> 8) & 0xff)
+#define RUNE_BG_ATTR(attrs) ((attrs) & 0xff)
 
 static inline unsigned int rune_make_attrs(unsigned int protect,
                                            unsigned int use_default_face,
                                            unsigned int font, unsigned int fg,
                                            unsigned int bg) {
-    return ((protect & 0x1) << 11) | ((use_default_face & 0x1) << 10) |
-           ((font & 0xf) << 6) | ((fg & 0x7) << 3) | ((bg & 0x7));
+    return ((protect & 0x1) << 21) | ((use_default_face & 0x1) << 20) |
+           ((font & 0xf) << 16) | ((fg & 0xff) << 8) | (bg & 0xff);
 }
 
 /* Check if given rune is ASCII \n. */

@@ -14,10 +14,12 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include "ked/rune.h"
 #include <ked/buffer.h>
 #include <ked/ked.h>
 #include <ked/terminal.h>
 #include <ked/ui.h>
+#include <string.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -42,7 +44,24 @@ DEFINE_EDIT_COMMAND(process_stop) { stop_editor(); }
 
 #pragma GCC diagnostic pop
 
+static void on_buffer_entry_change(Buffer **bufs, size_t len) {
+    unsigned int default_attrs = rune_make_attrs(0, 0, 1, 16, 15);
+    for (size_t i = 0; i < len; ++i) {
+        Buffer *buf = bufs[i];
+        if (strcmp(buf->buf_name, "__system_header__") == 0 ||
+            strcmp(buf->buf_name, "__system_footer__") == 0) {
+            buf->default_attrs = default_attrs;
+
+            for (size_t j = 0; j < buf->buf_size; ++j) {
+                buf->content[j].attrs = default_attrs;
+            }
+        }
+    }
+}
+
 void extension_on_load(void) {
+    add_buffer_entry_change_listener(on_buffer_entry_change);
+
     add_global_keybind("^[[B", EDIT_COMMAND_PTR(cursor_forward_line));
     add_global_keybind("^[[C", EDIT_COMMAND_PTR(cursor_forward));
     add_global_keybind("^[[D", EDIT_COMMAND_PTR(cursor_back));
@@ -57,4 +76,8 @@ void extension_on_load(void) {
     add_global_keybind("^Z", EDIT_COMMAND_PTR(process_stop));
     add_global_keybind("^F", EDIT_COMMAND_PTR(cursor_forward));
     add_global_keybind("\x7f", EDIT_COMMAND_PTR(delete_backward));
+}
+
+void extension_on_unload(void) {
+    remove_buffer_entry_change_listener(on_buffer_entry_change);
 }

@@ -56,9 +56,9 @@ void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg) {
 
     tputs("\e[");
     tputs(t);
-    tputs(";3");
+    tputs("m\e[38;5;");
     tputs(f);
-    tputs(";4");
+    tputs("m\e[48;5;");
     tputs(b);
     tputs("m");
 

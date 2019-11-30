@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CFLAGS = -Wall -Wextra -fPIC -I../../include
-OBJS = editcommand.o
+OBJS = system.o
 LDFLAGS = -shared -fPIC
 
 system.so: $(OBJS)

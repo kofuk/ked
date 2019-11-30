@@ -28,15 +28,13 @@
 
 typedef void (*EditCommand)(EDIT_COMMAND_ARG_LIST);
 
-
 // extension.c
 
 /* Add listener to be called just after buffer entry changed. */
-void add_buffer_change_listener(void (*func)(void));
+void add_buffer_entry_change_listener(void (*func)(Buffer **, size_t));
 
 /* Remove buffer change listener. */
-void remove_buffer_change_listener(void (*func)(void));
-
+void remove_buffer_entry_change_listener(void (*func)(Buffer **, size_t));
 
 // keybind.c
 

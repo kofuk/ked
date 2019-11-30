@@ -99,7 +99,25 @@ static void (**buffer_change_listeners)(Buffer **, size_t);
 static size_t buffer_change_listeners_i;
 static size_t buffer_change_listeners_len;
 
-void add_buffer_change_listener(void (*func)(Buffer **, size_t)) {
+void call_buffer_entry_change_listeners(void) {
+    size_t n_buffer = 0;
+    for (size_t i = 0; i < 3; ++i)
+        if (displayed_buffers[i] != NULL) ++n_buffer;
+
+    Buffer **bufs = malloc(sizeof(Buffer *) * n_buffer);
+    size_t bufs_i = 0;
+    for (size_t i = 0; i < 3; ++i) {
+        if (displayed_buffers[i] != NULL) {
+            bufs[bufs_i] = displayed_buffers[i];
+            ++bufs_i;
+        }
+    }
+
+    for (size_t i = 0; i < buffer_change_listeners_i; ++i)
+        (buffer_change_listeners[i])(bufs, n_buffer);
+}
+
+void add_buffer_entry_change_listener(void (*func)(Buffer **, size_t)) {
     for (size_t i = 0; i < buffer_change_listeners_i; ++i)
         if (buffer_change_listeners[i] == func) return;
 
@@ -116,9 +134,11 @@ void add_buffer_change_listener(void (*func)(Buffer **, size_t)) {
 
     buffer_change_listeners[buffer_change_listeners_i] = func;
     ++buffer_change_listeners_i;
+
+    call_buffer_entry_change_listeners();
 }
 
-void remove_buffer_change_listener(void (*func)(Buffer **, size_t)) {
+void remove_buffer_entry_change_listener(void (*func)(Buffer **, size_t)) {
     for (size_t i = 0; i < buffer_change_listeners_i; ++i) {
         if (func == buffer_change_listeners[i]) {
             memmove(buffer_change_listeners + i,
@@ -156,26 +176,14 @@ void set_buffer(Buffer *buf, enum BufferPosition pos) {
         break;
     }
 
-    size_t n_buffer = 0;
-    for (size_t i = 0; i < 3; ++i)
-        if (displayed_buffers != NULL) ++n_buffer;
-
-    Buffer **bufs = malloc(sizeof(Buffer *) * n_buffer);
-    size_t bufs_i = 0;
-    for (size_t i = 0; i < 3; ++i) {
-        bufs[bufs_i] = displayed_buffers[i];
-        ++bufs_i;
-    }
-
-    for (size_t i = 0; i < buffer_change_listeners_i; ++i)
-        (buffer_change_listeners[i])(bufs, n_buffer);
+    call_buffer_entry_change_listeners();
 }
 
 void init_system_buffers(void) {
-    Buffer *header = buffer_create_system("Header");
+    Buffer *header = buffer_create_system("__system_header__");
     set_buffer(header, BUF_HEADER);
 
-    Buffer *footer = buffer_create_system("Footer");
+    Buffer *footer = buffer_create_system("__system_footer__");
     set_buffer(footer, BUF_FOOTER);
 }
 
