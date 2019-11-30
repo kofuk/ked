@@ -267,6 +267,7 @@ void buffer_insert(Buffer *this, Rune r) {
         buffer_expand(this, INIT_GAP_SIZE);
 
     memcpy(this->content[this->gap_start].c, r, sizeof(Rune));
+    this->content[this->gap_start].attrs = 0;
     attr_rune_set_width(this->content + this->gap_start);
 
     ++(this->gap_start);
@@ -284,6 +285,12 @@ void buffer_delete_backward(Buffer *this) {
         return;
     }
 
+    if (RUNE_PROTECTED(buffer_get_rune(this, this->point - 1))) {
+        write_message("Write protected.");
+
+        return;
+    }
+
     --(this->gap_start);
     --(this->point);
 
@@ -293,6 +300,12 @@ void buffer_delete_backward(Buffer *this) {
 void buffer_delete_forward(Buffer *this) {
     if (this->point >= this->buf_size - (this->gap_end - this->gap_start)) {
         write_message("End of buffer.");
+
+        return;
+    }
+
+    if (RUNE_PROTECTED(buffer_get_rune(this, this->point))) {
+        write_message("Write protected.");
 
         return;
     }

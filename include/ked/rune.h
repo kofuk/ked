@@ -27,13 +27,19 @@ typedef struct {
     unsigned char c[4];
     /* Width of the character when drawn on terminals */
     unsigned char display_width;
-    /* Terminal decoration attributes. */
+    /* Terminal decoration attributes.
+     * | LSB              ->                  MSB |
+     * | protected | face   | fg color | bg color |
+     * |-----------+--------+----------+----------|
+     * | 1 bit     | 8 bits | 8 bits   | 8 bits   | */
     int attrs;
 } AttrRune;
 
-#define RUNE_FONT_ATTR(rune) (rune->attrs & 0xff)
-#define RUNE_FG_ATTR(rune) ((rune->attrs >> 8) & 0xff)
-#define RUNE_BF_ATTR(rune) ((rune->attrs >> 16) & 0xff)
+/* Whether the rune is write protected or not. */
+#define RUNE_PROTECTED(rune) ((rune).attrs & 1)
+#define RUNE_FONT_ATTR(rune) (((rune).attrs >> 1) & 0xff)
+#define RUNE_FG_ATTR(rune) (((rune).attrs >> 9) & 0xff)
+#define RUNE_BF_ATTR(rune) (((rune).attrs >> 17) & 0xff)
 
 /* Check if given rune is ASCII \n. */
 static inline int rune_is_lf(AttrRune rune) {
