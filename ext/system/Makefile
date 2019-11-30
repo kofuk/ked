@@ -16,7 +16,7 @@
 
 CFLAGS = -Wall -Wextra -fPIC -I../../include
 OBJS = system.o
-LDFLAGS = -shared -fPIC
+LDFLAGS = -shared -fPIC -L../../libked -lked
 
 system.so: $(OBJS)
 	$(CC) $(OBJS) -o system.so -shared $(LDFLAGS)
