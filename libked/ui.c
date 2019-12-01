@@ -21,14 +21,10 @@
 
 #include <ked/buffer.h>
 #include <ked/ked.h>
-#include <ked/keybind.h>
 #include <ked/rune.h>
-#include <ked/ui.h>
+#include <ked/internal.h>
 
-#include "ked/terminal.h"
 #include "libked.h"
-#include "terminal.h"
-#include "utilities.h"
 
 static int editor_exited;
 
@@ -40,6 +36,11 @@ static AttrRune **display_buffer;
 static const char *current_face;
 
 static pthread_mutex_t display_buffer_mutex;
+
+
+static void move_cursor_editor(unsigned int x, unsigned int y) {
+    move_cursor(x, y + 1);
+}
 
 /* Draws char to the terminal if needed. */
 static inline void ui_draw_char(unsigned char c, const char *face,
@@ -272,7 +273,7 @@ void display_buffer_unlock(void) {
     pthread_mutex_unlock(&display_buffer_mutex);
 }
 
-void redraw_editor(void) {
+static void redraw_editor(void) {
     display_buffer_lock();
 
     unsigned int x = 1;
@@ -391,8 +392,4 @@ void editor_main_loop() {
             memset(buf, 0, sizeof(Rune));
         }
     }
-}
-
-void move_cursor_editor(unsigned int x, unsigned int y) {
-    move_cursor(x, y + 1);
 }

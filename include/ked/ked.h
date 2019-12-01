@@ -28,6 +28,7 @@
 
 typedef void (*EditCommand)(EDIT_COMMAND_ARG_LIST);
 
+
 // extension.c
 
 /* Add listener to be called just after buffer entry changed. */
@@ -35,6 +36,7 @@ void add_buffer_entry_change_listener(void (*func)(Buffer **, size_t));
 
 /* Remove buffer change listener. */
 void remove_buffer_entry_change_listener(void (*func)(Buffer **, size_t));
+
 
 // face.c
 
@@ -48,15 +50,38 @@ void face_add(const char *name, const char *face);
 /* Set face used when specified face not found in storage. */
 void face_set_default(const char *face);
 
+
 // keybind.c
 
 /* Register specified EditCommand as a key handler for specified key sequence.
  * If the same key sequence is registered, this replaces it. */
 void add_global_keybind(const char *, EditCommand);
 
+
+// terminal.c
+
+/* Send SIGSTOP to process. */
+void stop_editor(void);
+
+
 // ui.c
 
 /* Clear display buffer and make whole screen redrawn. */
 void ui_invalidate(void);
+
+/* Requests to exit main loop. */
+void exit_editor(void);
+
+/* Requests to write message to message area. */
+void write_message(char *);
+
+/* Buffer position to be displayed. */
+enum BufferPosition { BUF_HEADER, BUF_MAIN, BUF_FOOTER };
+
+/* Adds buffer to display. */
+void set_buffer(Buffer *, enum BufferPosition);
+
+/* Forcuses buffer. */
+void select_buffer(Buffer *);
 
 #endif

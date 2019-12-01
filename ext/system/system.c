@@ -14,11 +14,10 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include <string.h>
+
 #include <ked/buffer.h>
 #include <ked/ked.h>
-#include <ked/terminal.h>
-#include <ked/ui.h>
-#include <string.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"

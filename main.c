@@ -25,9 +25,7 @@
 #include <ked/buffer.h>
 #include <ked/internal.h>
 #include <ked/ked.h>
-#include <ked/ui.h>
 
-#include "libked/extension.h"
 #include "libked/libked.h"
 
 static void handle_signal_thread(sigset_t *sigs) {

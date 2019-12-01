@@ -23,12 +23,8 @@
 #include <unistd.h>
 
 #include <ked/rune.h>
-#include <ked/terminal.h>
-#include <ked/ui.h>
 
-#include "ked/ked.h"
 #include "libked.h"
-#include "utilities.h"
 
 static struct termios orig_termios;
 
@@ -41,7 +37,7 @@ void tputc_printable(unsigned char c) { char_write_printable(1, c); }
 
 void tputrune(Rune r) { rune_write_printable(1, r); }
 
-void tputs(char *s) { write(1, s, strlen(s)); }
+void tputs(const char *s) { write(1, s, strlen(s)); }
 
 int tgetc(void) {
     char buf[1];

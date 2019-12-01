@@ -20,13 +20,11 @@
 #include <string.h>
 
 #include <ked/buffer.h>
-#include <ked/keybind.h>
-#include <ked/terminal.h>
-#include <ked/ui.h>
+#include <ked/internal.h>
 
 #include <ked/ked.h>
 
-#include "utilities.h"
+#include "libked.h"
 
 static char key_buf[8];
 

@@ -27,8 +27,7 @@
 #include <ked/buffer.h>
 #include <ked/ked.h>
 #include <ked/rune.h>
-#include <ked/terminal.h>
-#include <ked/ui.h>
+#include <ked/internal.h>
 
 #include "io.h"
 

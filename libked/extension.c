@@ -18,7 +18,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "extension.h"
+#include "libked.h"
 
 static void **extension_table;
 static size_t extension_table_size;

@@ -18,7 +18,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "utilities.h"
+#include "libked.h"
 
 char *itoa(unsigned int num) {
     int n = num != 0 ? (unsigned int)log10((double)num) + 2 : 2;

@@ -18,13 +18,60 @@
 #define LIBKED_H
 
 #include <pthread.h>
+#include <stdio.h>
+
+#include <ked/buffer.h>
+#include <ked/rune.h>
+
+// face.c
 
 /* Finds face associated with the name. */
 const char *face_lookup(const char *name);
+
+// io.c
+
+/* Reads up to given length of file and create an array of AttrRune. Length
+ * pointer will be updated to represent length of array of AttrRune. */
+AttrRune *create_content_buffer(FILE *, size_t *, size_t, enum LineEnding *);
+
+/* Saves buffer as UTF-8 text file. */
+int save_buffer_utf8(Buffer *);
+
+// ui.c
 
 /* Aquire lock for diplay buffer. */
 void display_buffer_lock(void);
 
 void display_buffer_unlock(void);
+
+/* converts unsigned int to string. */
+char *itoa(unsigned int);
+
+// terminal.c
+
+/* Write 1 byte to the terminal. */
+void tputc(int);
+/* Put specified character in printable form. */
+void tputc_printable(unsigned char);
+void tputrune(Rune);
+void tputs(const char *);
+/* Reads 1 byte from stdin and return the value casting to int. */
+int tgetc(void);
+/* Writes escape sequence to the terminal. */
+void esc_write(char *);
+
+void move_cursor(unsigned int, unsigned int);
+
+/* Set terminal graphic mode to specified value. */
+void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg);
+
+/* Reset terminal graphic mode. */
+void reset_graphic_attrs(void);
+
+// extension.c
+
+/* Loads library from specified path and executes initialize routine if it
+ * exists. */
+int load_extension(const char *);
 
 #endif
