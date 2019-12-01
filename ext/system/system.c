@@ -38,12 +38,13 @@ DEFINE_EDIT_COMMAND(cursor_forward_line) {
     size_t rest;
     if (!s) {
         moving = 1;
-        buffer_cursor_move(buf,  buf->buf_size - (buf->gap_end - buf->gap_start) - buf->point, 1);
+        buffer_cursor_move(
+            buf, buf->buf_size - (buf->gap_end - buf->gap_start) - buf->point,
+            1);
         moving = 0;
 
         return;
-    }
-    else
+    } else
         rest = result.start - buf->point;
 
     size_t n_start = result.end;
@@ -51,7 +52,10 @@ DEFINE_EDIT_COMMAND(cursor_forward_line) {
     s = buffer_search(buf, n_start, lf, 1, &result);
     if (!s) {
         moving = 1;
-        buffer_cursor_move(buf, rest + buf->buf_size - (buf->gap_end- buf->gap_start ) - buf->point, 1);
+        buffer_cursor_move(buf,
+                           rest + buf->buf_size -
+                               (buf->gap_end - buf->gap_start) - buf->point,
+                           1);
         moving = 0;
     } else {
         size_t len = result.end - n_start;
@@ -64,6 +68,37 @@ DEFINE_EDIT_COMMAND(cursor_forward_line) {
             buffer_cursor_move(buf, rest + len, 1);
             moving = 0;
         }
+    }
+}
+
+DEFINE_EDIT_COMMAND(cursor_back_line) {
+    struct SearchResult result;
+    int s = buffer_search(buf, buf->point, lf, 0, &result);
+    if (!s) {
+        moving = 1;
+        buffer_cursor_move(buf, buf->point, 0);
+        moving = 0;
+
+        return;
+    }
+
+    size_t rest = buf->point - result.end;
+    size_t n_end = result.start;
+    s = buffer_search(buf, n_end, lf, 0, &result);
+    size_t len;
+    if (!s)
+        len = buf->buf_size - (buf->gap_end - buf->gap_start) - n_end;
+    else
+        len =  n_end - result.start;
+
+    if (len > current_col) {
+        moving = 1;
+        buffer_cursor_move(buf, rest + len - current_col + 1, 0);
+        moving = 0;
+    } else {
+        moving = 1;
+        buffer_cursor_move(buf, rest + 1, 0);
+        moving = 0;
     }
 }
 
@@ -114,6 +149,7 @@ static void on_buffer_entry_change(Buffer **bufs, size_t len) {
 void extension_on_load(void) {
     add_buffer_entry_change_listener(on_buffer_entry_change);
 
+    add_global_keybind("^[[A", EDIT_COMMAND_PTR(cursor_back_line));
     add_global_keybind("^[[B", EDIT_COMMAND_PTR(cursor_forward_line));
     add_global_keybind("^[[C", EDIT_COMMAND_PTR(cursor_forward));
     add_global_keybind("^[[D", EDIT_COMMAND_PTR(cursor_back));
@@ -122,6 +158,7 @@ void extension_on_load(void) {
     add_global_keybind("^D", EDIT_COMMAND_PTR(delete_forward));
     add_global_keybind("^H", EDIT_COMMAND_PTR(delete_backward));
     add_global_keybind("^N", EDIT_COMMAND_PTR(cursor_forward_line));
+    add_global_keybind("^P", EDIT_COMMAND_PTR(cursor_back_line));
     add_global_keybind("^Q", EDIT_COMMAND_PTR(editor_quit));
     add_global_keybind("^X^C", EDIT_COMMAND_PTR(editor_quit));
     add_global_keybind("^X^S", EDIT_COMMAND_PTR(buffer_save));

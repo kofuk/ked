@@ -375,7 +375,12 @@ int buffer_search(Buffer *this, size_t start_point, String *search,
         }
     } else {
         size_t search_i = search->len - 1;
-        size_t i = start_point;
+
+        if (start_point == 0) {
+            return 0;
+        }
+
+        size_t i = start_point - 1;
         for (; i != 0; --i) {
             if (rune_eq(search->str[search_i], buffer_get_rune(this, i).c)) {
                 if (search_i == 0) {
