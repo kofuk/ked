@@ -105,6 +105,8 @@ static size_t buffer_change_listeners_i;
 static size_t buffer_change_listeners_len;
 
 void call_buffer_entry_change_listeners(void) {
+    if (displayed_buffers == NULL) return;
+
     size_t n_buffer = 0;
     for (size_t i = 0; i < 3; ++i)
         if (displayed_buffers[i] != NULL) ++n_buffer;
@@ -216,6 +218,8 @@ void select_buffer(Buffer *buf) {
 }
 
 void write_message(char *msg) {
+    if (displayed_buffers == NULL || displayed_buffers[2] == NULL) return;
+
     Buffer *footer = displayed_buffers[2];
     // TODO: Don't touch struct member here.
     footer->point = 0;

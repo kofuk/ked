@@ -72,11 +72,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    term_set_up();
-
-    ui_set_up();
-    init_system_buffers();
-
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, SIGCONT);
@@ -96,6 +91,11 @@ int main(int argc, char **argv) {
     if (!load_extension("ext/system/system.so")) {
         system_ext_load_fail = 1;
     } else {
+        term_set_up();
+
+        ui_set_up();
+        init_system_buffers();
+
         Buffer *buf = buffer_create(argv[1], argv[1]);
 
         if (buf != NULL) {
@@ -104,6 +104,9 @@ int main(int argc, char **argv) {
 
             editor_main_loop();
         }
+
+        ui_tear_down();
+        term_tear_down();
     }
 
     extension_tear_down();
@@ -111,9 +114,6 @@ int main(int argc, char **argv) {
 
     pthread_cancel(thread);
     pthread_join(thread, NULL);
-
-    ui_tear_down();
-    term_tear_down();
 
     if (system_ext_load_fail) {
         fputs("Failed to load system extension; Abort.\n", stderr);
