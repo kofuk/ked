@@ -49,7 +49,7 @@ static void handle_signal_thread(sigset_t *sigs) {
 }
 
 static void check_term() {
-    if (!(isatty(0) || isatty(1) || isatty(2))) {
+    if (!(isatty(0) && isatty(1) && isatty(2))) {
         fputs("stdin, stdout or stderr is not a TTY.", stderr);
 
         exit(1);
@@ -85,7 +85,10 @@ int main(int argc, char **argv) {
     pthread_sigmask(SIG_BLOCK, &sigs, NULL);
 
     pthread_t thread;
-    pthread_create(&thread, NULL, &handle_signal_thread, &sigs);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+    pthread_create(&thread, NULL, handle_signal_thread, &sigs);
+#pragma GCC diagnostic pop
 
     keybind_set_up();
     extension_set_up();
