@@ -14,7 +14,9 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#include "libked/extension.h"
+#include <pthread.h>
+#include <signal.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +24,25 @@
 
 #include <ked/buffer.h>
 #include <ked/internal.h>
+#include <ked/ked.h>
 #include <ked/ui.h>
+
+#include "libked/extension.h"
+
+static void handle_signal_thread(sigset_t *sigs) {
+    int res, sig;
+    for (;;) {
+        res = sigwait(sigs, &sig);
+
+        if (res != 0) continue;
+
+        switch (sig) {
+        case SIGCONT:
+            term_set_up();
+            ui_invalidate();
+        }
+    }
+}
 
 static void check_term() {
     if (!(isatty(0) || isatty(1) || isatty(2))) {
@@ -55,8 +75,15 @@ int main(int argc, char **argv) {
     ui_set_up();
     init_system_buffers();
 
-    keybind_set_up();
+    sigset_t sigs;
+    sigemptyset(&sigs);
+    sigaddset(&sigs, SIGCONT);
+    pthread_sigmask(SIG_BLOCK, &sigs, NULL);
 
+    pthread_t thread;
+    pthread_create(&thread, NULL, &handle_signal_thread, &sigs);
+
+    keybind_set_up();
     extension_set_up();
 
     char system_ext_load_fail = 0;
@@ -76,6 +103,10 @@ int main(int argc, char **argv) {
 
     extension_tear_down();
     keybind_tear_down();
+
+    pthread_cancel(thread);
+    pthread_join(thread, NULL);
+
     ui_tear_down();
     term_tear_down();
 

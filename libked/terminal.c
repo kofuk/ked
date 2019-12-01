@@ -144,17 +144,10 @@ void move_cursor(unsigned int x, unsigned int y) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-static void resume_editor(int signal) {
-    term_set_up();
-
-    ui_invalidate();
-}
-
 #pragma GCC diagnostic pop
 
 void stop_editor(void) {
     term_tear_down();
-    signal(SIGCONT, resume_editor);
 
     kill(0, SIGSTOP);
 }

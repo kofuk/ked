@@ -16,7 +16,7 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Iinclude
-LDFLAGS = -Llibked -lked
+LDFLAGS = -lpthread -Llibked -lked
 OBJ = main.o
 
 .PHONY: all
