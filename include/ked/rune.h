@@ -89,11 +89,6 @@ void string_destruct(String *);
 /* Set AttrRune.display_width for each given AttrRune. */
 void attr_runes_set_width(AttrRune *, size_t);
 
-void char_write_printable(int, unsigned char);
-
-/* Write the rune to the file discriptor in printable form. */
-void rune_write_printable(int, Rune);
-
 /* Set AttrRune.display_width. */
 void attr_rune_set_width(AttrRune *r);
 

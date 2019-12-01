@@ -55,6 +55,7 @@ void tputc(int);
 void tputc_printable(unsigned char);
 void tputrune(Rune);
 void tputs(const char *);
+void tput(const char *buf, size_t len);
 /* Reads 1 byte from stdin and return the value casting to int. */
 int tgetc(void);
 /* Writes escape sequence to the terminal. */
@@ -68,10 +69,20 @@ void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg);
 /* Reset terminal graphic mode. */
 void reset_graphic_attrs(void);
 
+/* Flushes terminal IO buffer. */
+void term_flush_buffer(void);
+
 // extension.c
 
 /* Loads library from specified path and executes initialize routine if it
  * exists. */
 int load_extension(const char *);
+
+// rune.c
+
+void char_write_printable(unsigned char);
+
+/* Write the rune in printable form. */
+void rune_write_printable( Rune);
 
 #endif

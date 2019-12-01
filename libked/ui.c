@@ -336,6 +336,8 @@ static void redraw_editor(void) {
 
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
 
+    term_flush_buffer();
+
     display_buffer_unlock();
 }
 

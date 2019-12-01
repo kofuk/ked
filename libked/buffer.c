@@ -29,7 +29,7 @@
 #include <ked/rune.h>
 #include <ked/internal.h>
 
-#include "io.h"
+#include "libked.h"
 
 Buffer *current_buffer;
 

@@ -20,6 +20,8 @@
 
 #include <ked/rune.h>
 
+#include "libked.h"
+
 String *string_create(const char *str) {
     size_t n_rune = 0;
     size_t len = strlen(str);
@@ -93,24 +95,24 @@ void attr_rune_set_width(AttrRune *r) {
         r->display_width = 2;
 }
 
-void char_write_printable(int fd, unsigned char c) {
+void char_write_printable(unsigned char c) {
     if (c == '\t')
-        write(fd, "        ", 8);
+        tputs("        ");
     else if (c <= 0x1f) {
-        char buf[2] = {'^', (char)(c + '@')};
-        write(fd, buf, 2);
+        tputc('^');
+        tputc(c + '@');
     } else
-        write(fd, &c, 1);
+        tputc(c);
 }
 
-void rune_write_printable(int fd, Rune r) {
+void rune_write_printable(Rune r) {
     if ((r[0] >> 7 & 1) == 0) {
-        char_write_printable(fd, r[0]);
+        char_write_printable(r[0]);
     } else {
         size_t len = 1;
         for (; len < 4; ++len)
             if ((r[len] >> 6 & 0b11) != 0b10) break;
 
-        write(fd, r, len);
+        tput((char *)r, len);
     }
 }

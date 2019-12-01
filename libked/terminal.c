@@ -14,6 +14,7 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include <asm-generic/ioctl.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,13 +32,30 @@ static struct termios orig_termios;
 size_t term_width;
 size_t term_height;
 
-void tputc(int c) { write(1, &c, 1); }
+#define IO_BUFFER_LEN 2048
 
-void tputc_printable(unsigned char c) { char_write_printable(1, c); }
+static char *io_buffer;
+static size_t io_buffer_i;
 
-void tputrune(Rune r) { rune_write_printable(1, r); }
+void tputc(int c) {
+    if (io_buffer_i >= IO_BUFFER_LEN) term_flush_buffer();
+    io_buffer[io_buffer_i] = (char)c;
+    ++io_buffer_i;
+}
 
-void tputs(const char *s) { write(1, s, strlen(s)); }
+void tputc_printable(unsigned char c) { char_write_printable(c); }
+
+void tputrune(Rune r) { rune_write_printable(r); }
+
+void tput(const char *buf, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        if (io_buffer_i >= IO_BUFFER_LEN) term_flush_buffer();
+        io_buffer[io_buffer_i] = buf[i];
+        ++io_buffer_i;
+    }
+}
+
+void tputs(const char *s) { tput(s, strlen(s)); }
 
 int tgetc(void) {
     char buf[1];
@@ -72,6 +90,11 @@ void esc_write(char *s) {
     tputs(s);
 }
 
+void term_flush_buffer(void) {
+    write(1, io_buffer, sizeof(char) * io_buffer_i);
+    io_buffer_i = 0;
+}
+
 static void init_variables(void) {
     // get terminal window size.
     struct winsize w;
@@ -79,9 +102,14 @@ static void init_variables(void) {
 
     term_width = (size_t)w.ws_col;
     term_height = (size_t)w.ws_row;
+
+    io_buffer = malloc(sizeof(char) * IO_BUFFER_LEN);
+    io_buffer_i = 0;
 }
 
 void term_set_up() {
+    init_variables();
+
     // https://invisible-island.net/xterm/xterm.faq.html#xterm_tite
     // enter alternate screen.
     esc_write("7");
@@ -106,8 +134,6 @@ void term_set_up() {
     new_termios.c_cc[VTIME] = 0;
 
     tcsetattr(0, TCSADRAIN, &new_termios);
-
-    init_variables();
 }
 
 void term_tear_down() {
@@ -120,6 +146,11 @@ void term_tear_down() {
     esc_write("[?47l");
     // restore cursor position.
     esc_write("8");
+
+    term_flush_buffer();
+
+    free(io_buffer);
+    io_buffer = NULL;
 }
 
 void move_cursor(unsigned int x, unsigned int y) {
@@ -142,7 +173,7 @@ void move_cursor(unsigned int x, unsigned int y) {
 #pragma GCC diagnostic pop
 
 void stop_editor(void) {
-    //FIXME: Avoid deadlock
+    // FIXME: Avoid deadlock
     display_buffer_lock();
 
     term_tear_down();
