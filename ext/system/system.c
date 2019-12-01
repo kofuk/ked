@@ -52,10 +52,7 @@ DEFINE_EDIT_COMMAND(cursor_forward_line) {
     s = buffer_search(buf, n_start, lf, 1, &result);
     if (!s) {
         moving = 1;
-        buffer_cursor_move(buf,
-                           rest + buf->buf_size -
-                               (buf->gap_end - buf->gap_start) - buf->point,
-                           1);
+        buffer_cursor_move(buf, rest + current_col, 1);
         moving = 0;
     } else {
         size_t len = result.end - n_start;
@@ -87,9 +84,9 @@ DEFINE_EDIT_COMMAND(cursor_back_line) {
     s = buffer_search(buf, n_end, lf, 0, &result);
     size_t len;
     if (!s)
-        len = buf->buf_size - (buf->gap_end - buf->gap_start) - n_end;
+        len = n_end + 1;
     else
-        len =  n_end - result.start;
+        len = n_end - result.start;
 
     if (len > current_col) {
         moving = 1;
