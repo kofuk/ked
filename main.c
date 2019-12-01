@@ -28,6 +28,7 @@
 #include <ked/ui.h>
 
 #include "libked/extension.h"
+#include "libked/libked.h"
 
 static void handle_signal_thread(sigset_t *sigs) {
     int res, sig;
@@ -40,6 +41,9 @@ static void handle_signal_thread(sigset_t *sigs) {
         case SIGCONT:
             term_set_up();
             ui_invalidate();
+
+            display_buffer_unlock();
+            break;
         }
     }
 }

@@ -27,6 +27,7 @@
 #include <ked/ui.h>
 
 #include "ked/ked.h"
+#include "libked.h"
 #include "utilities.h"
 
 static struct termios orig_termios;
@@ -68,9 +69,7 @@ void set_graphic_attrs(unsigned int text, unsigned int fg, unsigned int bg) {
     free(b);
 }
 
-void reset_graphic_attrs(void) {
-    tputs("\e[0m");
-}
+void reset_graphic_attrs(void) { tputs("\e[0m"); }
 
 void esc_write(char *s) {
     tputc('\e');
@@ -147,6 +146,9 @@ void move_cursor(unsigned int x, unsigned int y) {
 #pragma GCC diagnostic pop
 
 void stop_editor(void) {
+    //FIXME: Avoid deadlock
+    display_buffer_lock();
+
     term_tear_down();
 
     kill(0, SIGSTOP);

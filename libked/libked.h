@@ -17,7 +17,14 @@
 #ifndef LIBKED_H
 #define LIBKED_H
 
+#include <pthread.h>
+
 /* Finds face associated with the name. */
 const char *face_lookup(const char *name);
+
+/* Aquire lock for diplay buffer. */
+void display_buffer_lock(void);
+
+void display_buffer_unlock(void);
 
 #endif

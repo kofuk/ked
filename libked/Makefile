@@ -17,7 +17,7 @@
 CC = gcc
 CFLAGS = -fPIC -Wall -Wextra -I../include
 OBJS = buffer.o extension.o face.o io.o keybind.o rune.o terminal.o ui.o utilities.o
-LDFLAGS = -shared -lm -ldl
+LDFLAGS = -shared -lm -ldl -pthread
 
 .PHONY: all
 all: $(OBJS)

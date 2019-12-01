@@ -15,14 +15,15 @@
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
 #include <limits.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <ked/buffer.h>
+#include <ked/ked.h>
 #include <ked/keybind.h>
 #include <ked/rune.h>
 #include <ked/ui.h>
-#include <ked/ked.h>
 
 #include "ked/terminal.h"
 #include "libked.h"
@@ -37,6 +38,8 @@ Buffer **displayed_buffers;
 static AttrRune **display_buffer;
 
 static const char *current_face;
+
+static pthread_mutex_t display_buffer_mutex;
 
 /* Draws char to the terminal if needed. */
 static inline void ui_draw_char(unsigned char c, const char *face,
@@ -242,6 +245,8 @@ void ui_set_up(void) {
     buffer_change_listeners_i = 0;
     buffer_change_listeners =
         malloc(sizeof(void (*)(void)) * buffer_change_listeners_len);
+
+    pthread_mutex_init(&display_buffer_mutex, NULL);
 }
 
 void ui_tear_down(void) {
@@ -255,11 +260,21 @@ void ui_tear_down(void) {
     free(display_buffer);
 
     free(buffer_change_listeners);
+
+    pthread_mutex_destroy(&display_buffer_mutex);
 }
 
 void exit_editor() { editor_exited = 1; }
 
+void display_buffer_lock(void) { pthread_mutex_lock(&display_buffer_mutex); }
+
+void display_buffer_unlock(void) {
+    pthread_mutex_unlock(&display_buffer_mutex);
+}
+
 void redraw_editor(void) {
+    display_buffer_lock();
+
     unsigned int x = 1;
     unsigned int y = 1;
 
@@ -319,6 +334,8 @@ void redraw_editor(void) {
     }
 
     move_cursor_editor(current_buffer->cursor_x, current_buffer->cursor_y);
+
+    display_buffer_unlock();
 }
 
 void ui_invalidate(void) {
@@ -328,8 +345,6 @@ void ui_invalidate(void) {
             display_buffer[i][j].face = NULL;
         }
     }
-
-    redraw_editor();
 }
 
 void editor_main_loop() {
