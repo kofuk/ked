@@ -99,6 +99,26 @@ DEFINE_EDIT_COMMAND(cursor_back_line) {
     }
 }
 
+DEFINE_EDIT_COMMAND(cursor_beginning_of_line) {
+    struct SearchResult result;
+    int s = buffer_search(buf, buf->point, lf, 0, &result);
+    if (!s) {
+        buffer_cursor_move(buf, buf->point, 0);
+    } else {
+        buffer_cursor_move(buf, buf->point - result.end, 0);
+    }
+}
+
+DEFINE_EDIT_COMMAND(cursor_end_of_line) {
+    struct SearchResult result;
+    int s = buffer_search(buf, buf->point, lf, 1, &result);
+    if (!s) {
+        buffer_cursor_move(buf, buf->buf_size - (buf->gap_end - buf->gap_start) - buf->point, 1);
+    } else {
+        buffer_cursor_move(buf, result.start - buf->point, 1);
+    }
+}
+
 DEFINE_EDIT_COMMAND(delete_backward) { buffer_delete_backward(buf); }
 
 DEFINE_EDIT_COMMAND(delete_forward) { buffer_delete_forward(buf); }
@@ -150,9 +170,11 @@ void extension_on_load(void) {
     add_global_keybind("^[[B", EDIT_COMMAND_PTR(cursor_forward_line));
     add_global_keybind("^[[C", EDIT_COMMAND_PTR(cursor_forward));
     add_global_keybind("^[[D", EDIT_COMMAND_PTR(cursor_back));
+    add_global_keybind("^A", EDIT_COMMAND_PTR(cursor_beginning_of_line));
     add_global_keybind("^B", EDIT_COMMAND_PTR(cursor_back));
     add_global_keybind("^C", EDIT_COMMAND_PTR(display_way_of_quit));
     add_global_keybind("^D", EDIT_COMMAND_PTR(delete_forward));
+    add_global_keybind("^E", EDIT_COMMAND_PTR(cursor_end_of_line));
     add_global_keybind("^H", EDIT_COMMAND_PTR(delete_backward));
     add_global_keybind("^N", EDIT_COMMAND_PTR(cursor_forward_line));
     add_global_keybind("^P", EDIT_COMMAND_PTR(cursor_back_line));
