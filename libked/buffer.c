@@ -25,13 +25,32 @@
 #include <unistd.h>
 
 #include <ked/buffer.h>
+#include <ked/internal.h>
 #include <ked/ked.h>
 #include <ked/rune.h>
-#include <ked/internal.h>
 
 #include "libked.h"
 
 Buffer *current_buffer;
+
+static Buffer *buffer_create_empty(void) {
+    Buffer *result = malloc(sizeof(Buffer));
+    memset(result, 0, sizeof(Buffer));
+    result->cursor_x = 1;
+    result->cursor_y = 1;
+
+    result->listener = malloc(sizeof(struct BufferListeners));
+    result->listener->on_cursor_move =
+        malloc(sizeof(struct BufferListenerList));
+    memset(result->listener->on_cursor_move, 0,
+           sizeof(struct BufferListenerList));
+    result->listener->on_content_change =
+        malloc(sizeof(struct BufferListenerList));
+    memset(result->listener->on_cursor_move, 0,
+           sizeof(struct BufferListenerList));
+
+    return result;
+}
 
 static Buffer *buffer_create_existing_file(const char *path,
                                            const char *buf_name,
@@ -54,19 +73,13 @@ static Buffer *buffer_create_existing_file(const char *path,
     char *buf_name_buf = malloc(sizeof(char) * (buf_name_len + 1));
     memcpy(buf_name_buf, buf_name, buf_name_len + 1);
 
-    Buffer *result = malloc(sizeof(Buffer));
-    memset(result, 0, sizeof(Buffer));
+    Buffer *result = buffer_create_empty();
     result->buf_name = buf_name_buf;
     result->path = path_buf;
     result->content = content_buf;
-    result->point = 0;
     result->buf_size = size;
-    result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
     result->line_ending = lend;
-    result->modified = 0;
-    result->cursor_x = 1;
-    result->cursor_y = 1;
 
     return result;
 }
@@ -89,17 +102,12 @@ Buffer *buffer_create(const char *path, const char *buf_name) {
     char *buf_name_buf = malloc(sizeof(char) * (buf_name_len + 1));
     memcpy(buf_name_buf, buf_name, buf_name_len + 1);
 
-    Buffer *result = malloc(sizeof(Buffer));
-    memset(result, 0, sizeof(Buffer));
+    Buffer *result = buffer_create_empty();
     result->buf_name = buf_name_buf;
     result->path = path_buf;
     result->content = content_buf;
-    result->point = 0;
     result->buf_size = INIT_GAP_SIZE;
-    result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    result->cursor_x = 1;
-    result->cursor_y = 1;
 
     return result;
 }
@@ -107,15 +115,12 @@ Buffer *buffer_create(const char *path, const char *buf_name) {
 Buffer *buffer_create_system(const char *name) {
     AttrRune *content_buf = malloc(sizeof(AttrRune) * INIT_GAP_SIZE);
 
-    Buffer *result = malloc(sizeof(Buffer));
-    memset(result, 0, sizeof(Buffer));
+    Buffer *result = buffer_create_empty();
     result->buf_name = strdup(name);
+    result->system = 1;
     result->content = content_buf;
     result->buf_size = INIT_GAP_SIZE;
-    result->gap_start = 0;
     result->gap_end = INIT_GAP_SIZE;
-    result->cursor_x = 1;
-    result->cursor_y = 1;
 
     return result;
 }
@@ -127,7 +132,21 @@ void buffer_destruct(Buffer *this) {
     free(this->path);
     free(this->content);
 
+    free(this->listener->on_content_change);
+    free(this->listener->on_cursor_move);
+    free(this->listener);
+
     free(this);
+}
+
+static void buffer_call_listener(Buffer *this,
+                                 struct BufferListenerList *listeners) {
+    if (listeners->listner_calling) return;
+
+    listeners->listner_calling = 1;
+    for (size_t i = 0; i < listeners->i; ++i)
+        (*(listeners->listeners[i]))(this);
+    listeners->listner_calling = 0;
 }
 
 static void buffer_update_cursor_position(Buffer *this) {
@@ -165,6 +184,8 @@ static void buffer_update_cursor_position(Buffer *this) {
 
     this->cursor_x = cursor_x;
     this->cursor_y = cursor_y;
+
+    buffer_call_listener(this, this->listener->on_cursor_move);
 }
 
 static void buffer_expand(Buffer *this, size_t amount) {
@@ -223,6 +244,8 @@ void buffer_cursor_move(Buffer *this, size_t n, int forward) {
     buffer_update_cursor_position(this);
 
     buffer_scroll_in_need(this);
+
+    buffer_call_listener(this, this->listener->on_cursor_move);
 }
 
 void buffer_cursor_forward_line(Buffer *this) {
@@ -281,6 +304,9 @@ void buffer_insert(Buffer *this, Rune r) {
     buffer_update_cursor_position(this);
 
     buffer_scroll_in_need(this);
+
+    buffer_call_listener(this, this->listener->on_content_change);
+    buffer_call_listener(this, this->listener->on_cursor_move);
 }
 
 void buffer_delete_backward(Buffer *this) {
@@ -302,6 +328,9 @@ void buffer_delete_backward(Buffer *this) {
     buffer_update_cursor_position(this);
 
     buffer_scroll_in_need(this);
+
+    buffer_call_listener(this, this->listener->on_content_change);
+    buffer_call_listener(this, this->listener->on_cursor_move);
 }
 
 void buffer_delete_forward(Buffer *this) {
@@ -320,6 +349,8 @@ void buffer_delete_forward(Buffer *this) {
     ++(this->gap_end);
 
     buffer_update_cursor_position(this);
+
+    buffer_call_listener(this, this->listener->on_content_change);
 }
 
 void buffer_scroll(Buffer *this, size_t n, char forward) {
@@ -423,4 +454,36 @@ int buffer_save(Buffer *this) {
     }
 
     return save_buffer_utf8(this);
+}
+
+static void set_buffer_listener_internal(struct BufferListenerList *list,
+                                         BufferListener l) {
+    for (size_t i = 0; i < list->i; ++i)
+        if (list->listeners[i] == l) return;
+
+    if (list->i >= list->len) {
+        if (list->len == 0) {
+            list->len = 1;
+        } else if (list->len <= 8) {
+            list->len = list->len << 1;
+        } else {
+            list->len += 8;
+        }
+        list->listeners = realloc(list->listeners, list->len);
+    }
+
+    list->listeners[list->i] = l;
+    ++(list->i);
+}
+
+void buffer_add_on_cursor_move_listener(Buffer *this, BufferListener l) {
+    if (this->system) return;
+
+    set_buffer_listener_internal(this->listener->on_cursor_move, l);
+}
+
+void buffer_add_on_content_change_listener(Buffer *this, BufferListener l) {
+    if (this->system) return;
+
+    set_buffer_listener_internal(this->listener->on_content_change, l);
 }

@@ -28,13 +28,33 @@
 
 enum LineEnding { LEND_LF, LEND_CR, LEND_CRLF };
 
+struct Buffer;
+
+typedef void (*BufferListener)(struct Buffer *);
+
+struct BufferListenerList {
+    BufferListener *listeners;
+    size_t len;
+    size_t i;
+
+    /* To avoid infinite recursive call. */
+    char listner_calling;
+};
+
+struct BufferListeners {
+    struct BufferListenerList *on_cursor_move;
+    struct BufferListenerList *on_content_change;
+};
+
 /* Buffer struct defines editing buffer for each file. every edit event take
  * place on buffer, rather than UI. */
-typedef struct {
+typedef struct Buffer {
     /* Buffer name to be displayed. */
     char *buf_name;
     /* Buffer file path to be saved. */
     char *path;
+    /* Whether this buffer is system buffer or not. */
+    char system;
     /* The content of buffer includes gap. */
     AttrRune *content;
     /* Cursor position in this buffer excluding gap area. */
@@ -62,6 +82,8 @@ typedef struct {
     unsigned int cursor_x;
     /* Cursor Y position in display area. */
     unsigned int cursor_y;
+    /* Listener. */
+    struct BufferListeners *listener;
 } Buffer;
 
 /* Creates buffer for the path, specified in 1st argument, with name of 2nd
@@ -118,5 +140,8 @@ static inline AttrRune buffer_get_rune(const Buffer *buf, const size_t point) {
                ? buf->content[point + (buf->gap_end - buf->gap_start)]
                : buf->content[point];
 }
+
+void buffer_add_on_cursor_move_listener(Buffer *, BufferListener);
+void buffer_add_on_content_change_listener(Buffer *, BufferListener);
 
 #endif
