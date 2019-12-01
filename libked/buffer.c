@@ -179,6 +179,19 @@ static void buffer_expand(Buffer *this, size_t amount) {
     this->buf_size += amount;
 }
 
+static void buffer_scroll_in_need(Buffer *this) {
+    if (this->cursor_y >
+        this->display_range_y_end - this->display_range_y_start) {
+        buffer_scroll(this, 1, 1);
+
+        buffer_update_cursor_position(this);
+    } else if (this->cursor_y == 0) {
+        buffer_scroll(this, 1, 0);
+
+        buffer_update_cursor_position(this);
+    }
+}
+
 void buffer_cursor_move(Buffer *this, size_t n, int forward) {
     if (n > this->gap_end - this->gap_start)
         buffer_expand(this, n - this->gap_end - this->gap_start);
@@ -209,16 +222,7 @@ void buffer_cursor_move(Buffer *this, size_t n, int forward) {
 
     buffer_update_cursor_position(this);
 
-    if (this->cursor_y >
-        this->display_range_y_end - this->display_range_y_start) {
-        buffer_scroll(this, 1, 1);
-
-        buffer_update_cursor_position(this);
-    } else if (this->cursor_y == 0) {
-        buffer_scroll(this, 1, 0);
-
-        buffer_update_cursor_position(this);
-    }
+    buffer_scroll_in_need(this);
 }
 
 void buffer_cursor_forward_line(Buffer *this) {
@@ -275,6 +279,8 @@ void buffer_insert(Buffer *this, Rune r) {
     this->modified = 1;
 
     buffer_update_cursor_position(this);
+
+    buffer_scroll_in_need(this);
 }
 
 void buffer_delete_backward(Buffer *this) {
@@ -294,6 +300,8 @@ void buffer_delete_backward(Buffer *this) {
     --(this->point);
 
     buffer_update_cursor_position(this);
+
+    buffer_scroll_in_need(this);
 }
 
 void buffer_delete_forward(Buffer *this) {
