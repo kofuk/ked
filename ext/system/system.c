@@ -14,10 +14,16 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
+#include "ked/rune.h"
 #include <string.h>
 
 #include <ked/buffer.h>
 #include <ked/ked.h>
+
+static String *lf;
+
+static size_t current_col = 0;
+static char moving;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -26,7 +32,40 @@ DEFINE_EDIT_COMMAND(cursor_forward) { buffer_cursor_move(buf, 1, 1); }
 
 DEFINE_EDIT_COMMAND(cursor_back) { buffer_cursor_move(buf, 1, 0); }
 
-DEFINE_EDIT_COMMAND(cursor_forward_line) { buffer_cursor_forward_line(buf); };
+DEFINE_EDIT_COMMAND(cursor_forward_line) {
+    struct SearchResult result;
+    int s = buffer_search(buf, buf->point, lf, 1, &result);
+    size_t rest;
+    if (!s) {
+        moving = 1;
+        buffer_cursor_move(buf,  buf->buf_size - (buf->gap_end - buf->gap_start) - buf->point, 1);
+        moving = 0;
+
+        return;
+    }
+    else
+        rest = result.start - buf->point;
+
+    size_t n_start = result.end;
+
+    s = buffer_search(buf, n_start, lf, 1, &result);
+    if (!s) {
+        moving = 1;
+        buffer_cursor_move(buf, rest + buf->buf_size - (buf->gap_end- buf->gap_start ) - buf->point, 1);
+        moving = 0;
+    } else {
+        size_t len = result.end - n_start;
+        if (len > current_col) {
+            moving = 1;
+            buffer_cursor_move(buf, rest + current_col, 1);
+            moving = 0;
+        } else {
+            moving = 1;
+            buffer_cursor_move(buf, rest + len, 1);
+            moving = 0;
+        }
+    }
+}
 
 DEFINE_EDIT_COMMAND(delete_backward) { buffer_delete_backward(buf); }
 
@@ -42,6 +81,17 @@ DEFINE_EDIT_COMMAND(process_stop) { stop_editor(); }
 
 #pragma GCC diagnostic pop
 
+static void on_cursor_move(Buffer *buf) {
+    if (moving) return;
+
+    struct SearchResult result;
+    int s = buffer_search(buf, buf->point, lf, 0, &result);
+    if (!s)
+        current_col = buf->point;
+    else
+        current_col = buf->point - result.start;
+}
+
 static const char *face_name_header = "SystemHeader";
 static const char *face_name_footer = "SystemFooter";
 
@@ -55,6 +105,8 @@ static void on_buffer_entry_change(Buffer **bufs, size_t len) {
             buf->default_face = face_name_header;
         } else if (strcmp(buf->buf_name, "__system_footer__") == 0) {
             buf->default_face = face_name_footer;
+        } else {
+            buffer_add_on_cursor_move_listener(buf, on_cursor_move);
         }
     }
 }
@@ -79,8 +131,14 @@ void extension_on_load(void) {
 
     face_add(face_name_header, face_header);
     face_add(face_name_footer, face_footer);
+
+    lf = string_create("\n");
+
+    moving = 0;
+    current_col = 1;
 }
 
 void extension_on_unload(void) {
-    remove_buffer_entry_change_listener(on_buffer_entry_change);
+    string_destruct(lf);
+    lf = NULL;
 }

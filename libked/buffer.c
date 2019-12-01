@@ -248,46 +248,6 @@ void buffer_cursor_move(Buffer *this, size_t n, int forward) {
     buffer_call_listener(this, this->listener->on_cursor_move);
 }
 
-void buffer_cursor_forward_line(Buffer *this) {
-    size_t col = 0;
-
-    size_t point = this->point;
-
-    /* First, search for '\n' to obtain current column number. */
-    while (point != 0 && !rune_is_lf(buffer_get_rune(this, point))) {
-        ++col;
-        --point;
-    }
-
-    point = this->point;
-    size_t n_forward = 1;
-
-    /* Next, search for next '\n' to calculate the number of  remaining
-       character. If point is now on the last line, we only move to end of the
-       buffer and exit. */
-    while (!rune_is_lf(buffer_get_rune(this, point))) {
-        if (point >= this->buf_size - (this->gap_end - this->gap_start)) {
-            buffer_cursor_move(this, n_forward, 1);
-
-            return;
-        }
-
-        ++n_forward;
-        ++point;
-    }
-
-    ++point;
-
-    size_t new_col = 1;
-    /* Finally, move to target column unless reach to the end of the buffer. */
-    while (!rune_is_lf(buffer_get_rune(this, point)) && new_col < col) {
-        ++n_forward;
-        ++new_col;
-        ++point;
-    }
-    buffer_cursor_move(this, n_forward, 1);
-}
-
 void buffer_insert(Buffer *this, Rune r) {
     if (this->gap_end - this->gap_start < MIN_GAP_SIZE)
         buffer_expand(this, INIT_GAP_SIZE);
@@ -418,13 +378,14 @@ int buffer_search(Buffer *this, size_t start_point, String *search,
         size_t i = start_point;
         for (; i != 0; --i) {
             if (rune_eq(search->str[search_i], buffer_get_rune(this, i).c)) {
-                --search_i;
-
                 if (search_i == 0) {
-                    --i;
+                    result->start = i;
+                    result->end = i + search->len;
 
-                    break;
+                    return 1;
                 }
+
+                --search_i;
             } else if (search_i != search->len - 1) {
                 i += (search->len - search_i);
                 search_i = search->len - 1;
