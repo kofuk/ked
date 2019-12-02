@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude
+CFLAGS = $(shell cat additional_cflags.txt) -Wall -Wextra -Iinclude
 LDFLAGS = -pthread -Llibked -lked
 OBJ = main.o userpref.o
 

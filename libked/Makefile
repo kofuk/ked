@@ -15,7 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = -fPIC -Wall -Wextra -I../include
+CFLAGS = $(shell cat ../additional_cflags.txt) -fPIC -Wall -Wextra -I../include
 OBJS = buffer.o extension.o face.o io.o keybind.o rune.o terminal.o ui.o utilities.o
 LDFLAGS = -shared -lm -ldl -pthread
 

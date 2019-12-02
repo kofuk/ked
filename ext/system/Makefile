@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-CFLAGS = -Wall -Wextra -fPIC -I../../include
+CFLAGS = $(shell cat ../../additional_cflags.txt) -Wall -Wextra -fPIC -I../../include
 OBJS = system.o
 LDFLAGS = -shared -fPIC -L../../libked -lked
 
