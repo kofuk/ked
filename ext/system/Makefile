@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-CFLAGS = $(shell cat ../../additional_cflags.txt) -Wall -Wextra -fPIC -I../../include
+ADDITIONAL_CFLAGS = $(shell cat ../../additional_cflags.txt)
+CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -fPIC -I../../include
 OBJS = system.o
 LDFLAGS = -shared -fPIC -L../../libked -lked
 
@@ -22,7 +23,7 @@ system.so: $(OBJS)
 	$(CC) $(OBJS) -o system.so -shared $(LDFLAGS)
 
 .PHONY: debug
-debug: CFLAGS = -Wall -Wextra -fPIC -I../../include -O0 -g3
+debug: CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -fPIC -I../../include -O0 -g3
 debug: system.so
 
 .PHONY: clean

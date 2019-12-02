@@ -29,6 +29,8 @@ gcc -xc -Wall -Wextra -c -o /dev/null - <<'EOF' 2>&1 | grep -i implicit &>/dev/n
 #include <signal.h>
 
 int main(void) {
+    sigset_t sigs;
+    sigemptyset(&sigs);
     kill(0, SIGCONT);
     return 0;
 }

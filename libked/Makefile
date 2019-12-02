@@ -15,7 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = $(shell cat ../additional_cflags.txt) -fPIC -Wall -Wextra -I../include
+ADDITIONAL_CFLAGS= $(shell cat ../additional_cflags.txt)
+CFLAGS = $(ADDITIONAL_CFLAGS) -fPIC -Wall -Wextra -I../include
 OBJS = buffer.o extension.o face.o io.o keybind.o rune.o terminal.o ui.o utilities.o
 LDFLAGS = -shared -lm -ldl -pthread
 
@@ -24,7 +25,7 @@ all: $(OBJS)
 	$(CC) -o libked.so $(OBJS) $(LDFLAGS)
 
 .PHON: debug
-debug: CFLAGS = -fPIC -Wall -Wextra -O0 -g3 -I../include
+debug: CFLAGS = $(ADDITIONAL_CFLAGS) -fPIC -Wall -Wextra -O0 -g3 -I../include
 debug: all
 
 .PHONY: clean

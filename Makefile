@@ -15,7 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 CC = gcc
-CFLAGS = $(shell cat additional_cflags.txt) -Wall -Wextra -Iinclude
+ADDITIONAL_CFLAGS = $(shell cat additional_cflags.txt)
+CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -Iinclude
 LDFLAGS = -pthread -Llibked -lked
 OBJ = main.o userpref.o
 
@@ -26,7 +27,7 @@ all: $(OBJ)
 	$(CC) -o ked $(OBJ) $(LDFLAGS)
 
 .PHONY: debug
-debug: CFLAGS = -Wall -Wextra -Iinclude -O0 -g3
+debug: CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -Iinclude -O0 -g3
 debug: SUBMAKE_TARGET = debug
 debug: all
 

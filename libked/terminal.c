@@ -167,11 +167,6 @@ void move_cursor(unsigned int x, unsigned int y) {
     tputs("f");
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#pragma GCC diagnostic pop
-
 void stop_editor(void) {
     // FIXME: Avoid deadlock
     display_buffer_lock();
