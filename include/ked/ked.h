@@ -14,8 +14,8 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#ifndef KED_H
-#define KED_H
+#ifndef KED_KED_H
+#define KED_KED_H
 
 #include <stddef.h>
 

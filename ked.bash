@@ -9,4 +9,4 @@ if [ ! -x "$_exec_file" ]; then
     exit 1
 fi
 
-LD_LIBRARY_PATH=libked "$_exec_file" "$@"
+LD_LIBRARY_PATH=libked exec "$_exec_file" --debug "$@"

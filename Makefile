@@ -17,7 +17,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Iinclude
 LDFLAGS = -pthread -Llibked -lked
-OBJ = main.o
+OBJ = main.o userpref.o
 
 .PHONY: all
 all: $(OBJ)

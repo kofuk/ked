@@ -28,6 +28,8 @@
 
 #include "libked/libked.h"
 
+#include "ked.h"
+
 static void handle_signal_thread(sigset_t *sigs) {
     int res, sig;
     for (;;) {
@@ -72,6 +74,17 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    int debug = 0;
+    char *open_file_name;
+    if (argc >= 3) {
+        if (strcmp(argv[1], "--debug") == 0){
+            debug = 1;
+            open_file_name = argv[2];
+        }
+    } else {
+        open_file_name = argv[1];
+    }
+
     sigset_t sigs;
     sigemptyset(&sigs);
     sigaddset(&sigs, SIGCONT);
@@ -86,17 +99,13 @@ int main(int argc, char **argv) {
     keybind_set_up();
     extension_set_up();
 
-    char system_ext_load_fail = 0;
-
-    if (!load_extension("ext/system/system.so")) {
-        system_ext_load_fail = 1;
-    } else {
+    if (userpref_load(debug)) {
         term_set_up();
 
         ui_set_up();
         init_system_buffers();
 
-        Buffer *buf = buffer_create(argv[1], argv[1]);
+        Buffer *buf = buffer_create(open_file_name, open_file_name);
 
         if (buf != NULL) {
             set_buffer(buf, BUF_MAIN);
@@ -114,10 +123,6 @@ int main(int argc, char **argv) {
 
     pthread_cancel(thread);
     pthread_join(thread, NULL);
-
-    if (system_ext_load_fail) {
-        fputs("Failed to load system extension; Abort.\n", stderr);
-    }
 
     return 0;
 }

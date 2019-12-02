@@ -129,7 +129,9 @@ void add_buffer_entry_change_listener(void (*func)(Buffer **, size_t)) {
         if (buffer_change_listeners[i] == func) return;
 
     if (buffer_change_listeners_i >= buffer_change_listeners_len) {
-        if (buffer_change_listeners_len <= 64) {
+        if (buffer_change_listeners_len == 0) {
+            buffer_change_listeners_len = 8;
+        } else if (buffer_change_listeners_len <= 64) {
             buffer_change_listeners_len = buffer_change_listeners_len << 2;
         } else {
             buffer_change_listeners_len += 64;
@@ -245,11 +247,6 @@ void ui_set_up(void) {
 
     displayed_buffers = malloc(sizeof(Buffer *) * 4);
     memset(displayed_buffers, 0, sizeof(Buffer *) * 4);
-
-    buffer_change_listeners_len = 8;
-    buffer_change_listeners_i = 0;
-    buffer_change_listeners =
-        malloc(sizeof(void (*)(void)) * buffer_change_listeners_len);
 
     pthread_mutex_init(&display_buffer_mutex, NULL);
 }
