@@ -48,20 +48,72 @@ static void handle_signal_thread(sigset_t *sigs) {
     }
 }
 
-static void check_term() {
-    if (!(isatty(0) && isatty(1) && isatty(2))) {
-        fputs("stdin, stdout or stderr is not a TTY.", stderr);
+static void check_term(int use_stdin) {
+    if ((use_stdin && !(isatty(1) && isatty(2))) ||
+        (!use_stdin && !(isatty(0) && isatty(1) && isatty(2)))) {
+        fputs("Not a tty.\n", stderr);
 
         exit(1);
     }
+}
 
-    char *term = getenv("TERM");
+static void print_help(void) {
+    puts("usage: ked [options]... file\n"
+         "Simple console text editor with minimal dependency.\n\n"
+         "  --debug -d    Load config file for debug. (not ~/.kedrc)\n"
+         "  --help        Print this help and exit.\n"
+         "  --version     Print version and brief license information and exit.");
+}
 
-    if (term == NULL || strncmp(term, "xterm", 5)) {
-        fprintf(stderr, "ked: Unknown terminal (%s != xterm*)\n",
-                term == NULL ? "<NULL>" : term);
+static void print_version(void) {
+    puts(
+        "KED 0.0.1\n\n"
+        "This program is distributed in the hope that it will be useful,\n"
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+        "GNU General Public License for more details.");
+}
 
-        exit(1);
+static char *opt_file_name;
+static int opt_debug;
+static int opt_print_version;
+static int opt_print_help;
+static char *opt_unrecognized;
+static char opt_unrecognized_char;
+
+static void handle_option(int argc, char **argv) {
+    char *opt;
+    for (int i = 1; i < argc; ++i) {
+        opt = argv[i];
+
+        if (strncmp(opt, "--", 2) == 0) {
+            if (strcmp(opt, "--help") == 0)
+                opt_print_help = 1;
+            else if (strcmp(opt, "--version") == 0)
+                opt_print_version = 1;
+            else if (strcmp(opt, "--debug") == 0)
+                opt_debug = 1;
+            else {
+                opt_unrecognized = opt;
+
+                return;
+            }
+        } else if (strncmp(opt, "-", 1) == 0) {
+            size_t len = strlen(opt);
+            for (size_t j = 1; j < len; ++j) {
+                if (opt[j] == 'd')
+                    opt_debug = 1;
+                else {
+                    opt_unrecognized_char = opt[j];
+
+                    return;
+                }
+            }
+        } else {
+            if (opt_file_name == NULL) {
+                opt_file_name = opt;
+            }
+        }
     }
 }
 
@@ -69,24 +121,33 @@ static void check_term() {
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 
 int main(int argc, char **argv) {
-    check_term();
+    handle_option(argc, argv);
 
-    if (argc < 2) {
-        fputs("Filename required.\n", stderr);
+    if (opt_unrecognized != NULL) {
+        fprintf(stderr, "%s: %s: Unrecognized option\n", PROGRAM_NAME,
+                opt_unrecognized);
+        print_help();
+
+        return 1;
+    } else if (opt_unrecognized_char != 0) {
+        fprintf(stderr, "%s: -%c: Unrecognized option\n", PROGRAM_NAME,
+                opt_unrecognized_char);
+        print_help();
 
         return 1;
     }
 
-    int debug = 0;
-    char *open_file_name;
-    if (argc >= 3) {
-        if (strcmp(argv[1], "--debug") == 0){
-            debug = 1;
-            open_file_name = argv[2];
-        }
-    } else {
-        open_file_name = argv[1];
+    if (opt_print_help) {
+        print_help();
     }
+    if (opt_print_version) {
+        print_version();
+    }
+    if (opt_print_help || opt_print_version) {
+        exit(0);
+    }
+
+    check_term(opt_file_name != NULL && strcmp(opt_file_name, "-"));
 
     sigset_t sigs;
     sigemptyset(&sigs);
@@ -99,13 +160,13 @@ int main(int argc, char **argv) {
     keybind_set_up();
     extension_set_up();
 
-    if (userpref_load(debug)) {
+    if (userpref_load(opt_debug)) {
         term_set_up();
 
         ui_set_up();
         init_system_buffers();
 
-        Buffer *buf = buffer_create(open_file_name, open_file_name);
+        Buffer *buf = buffer_create(opt_file_name, opt_file_name);
 
         if (buf != NULL) {
             set_buffer(buf, BUF_MAIN);
