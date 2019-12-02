@@ -65,6 +65,9 @@ static void check_term() {
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+
 int main(int argc, char **argv) {
     check_term();
 
@@ -91,14 +94,7 @@ int main(int argc, char **argv) {
     pthread_sigmask(SIG_BLOCK, &sigs, NULL);
 
     pthread_t thread;
-#if __GNUC__ >= 4 && __GNUC_MINOR >= 6 || __clang__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#endif
     pthread_create(&thread, NULL, handle_signal_thread, &sigs);
-#if __GNUC__ >= 4 && __GNUC_MINOR >= 6 || __clang__
-#pragma GCC diagnostic pop
-#endif
 
     keybind_set_up();
     extension_set_up();
@@ -130,3 +126,4 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+#pragma GCC diagnostic pop

@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+CC = gcc
 ADDITIONAL_CFLAGS = $(shell cat ../../additional_cflags.txt)
 CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -fPIC -I../../include
 OBJS = system.o

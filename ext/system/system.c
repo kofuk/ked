@@ -25,10 +25,8 @@ static String *lf;
 static size_t current_col = 0;
 static char moving;
 
-#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 6 || __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
 
 DEFINE_EDIT_COMMAND(cursor_forward) { buffer_cursor_move(buf, 1, 1); }
 
@@ -133,10 +131,7 @@ DEFINE_EDIT_COMMAND(display_way_of_quit) { write_message("Ctrl+Q to quit."); }
 
 DEFINE_EDIT_COMMAND(process_stop) { stop_editor(); }
 
-#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 6 || __clang__
 #pragma GCC diagnostic pop
-#endif
-
 
 static void on_cursor_move(Buffer *buf) {
     if (moving) return;
