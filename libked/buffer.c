@@ -443,13 +443,9 @@ static void set_buffer_listener_internal(struct BufferListenerList *list,
 }
 
 void buffer_add_on_cursor_move_listener(Buffer *this, BufferListener l) {
-    if (this->system) return;
-
     set_buffer_listener_internal(this->listener->on_cursor_move, l);
 }
 
 void buffer_add_on_content_change_listener(Buffer *this, BufferListener l) {
-    if (this->system) return;
-
     set_buffer_listener_internal(this->listener->on_content_change, l);
 }
