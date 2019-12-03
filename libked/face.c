@@ -24,9 +24,9 @@
 /* Definition of tree to save face. */
 typedef struct Face {
     /* The name this face associated to. */
-    const char *name;
+    char *name;
     /* Control sequence to realize this face. */
-    const char *face;
+    char *face;
     /* Left branch of entry tree. */
     struct Face *left;
     /* Right branch of entry tree. */
@@ -41,19 +41,19 @@ static void face_add_internal(Face *top, const char *name, const char *face) {
         if (top->left == NULL) {
             top->left = malloc(sizeof(Face));
             memset(top->left, 0, sizeof(Face));
-            top->left->name = name;
-            top->left->face = face;
+            top->left->name = cstr_dup(name);
+            top->left->face = cstr_dup(face);
         } else {
             face_add_internal(top->left, name, face);
         }
     } else if (cmp == 0) {
-        top->face = face;
+        top->face = cstr_dup(face);
     } else {
         if (top->right == NULL) {
             top->right = malloc(sizeof(Face));
             memset(top->right, 0, sizeof(Face));
-            top->right->name = name;
-            top->right->face = face;
+            top->right->name = cstr_dup(name);
+            top->right->face = cstr_dup(face);
         } else {
             face_add_internal(top->right, name, face);
         }
@@ -64,11 +64,27 @@ void face_add(const char *name, const char *face) {
     if (face_tree_top == NULL) {
         face_tree_top = malloc(sizeof(Face));
         memset(face_tree_top, 0, sizeof(Face));
-        face_tree_top->name = name;
-        face_tree_top->face = face;
+        face_tree_top->name = cstr_dup(name);
+        face_tree_top->face = cstr_dup(face);
     } else {
         face_add_internal(face_tree_top, name, face);
     }
+}
+
+static void face_tear_down_internal(Face *top) {
+    if (top == NULL) return;
+
+    face_tear_down_internal(top->left);
+    face_tear_down_internal(top->right);
+
+    free(top->name);
+    free(top->face);
+    free(top);
+}
+
+__attribute__((destructor)) static void face_tear_down(void) {
+    face_tear_down_internal(face_tree_top);
+    face_tree_top = NULL;
 }
 
 static const char *face_lookup_internal(Face *top, const char *name) {

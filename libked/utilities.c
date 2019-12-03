@@ -17,6 +17,7 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "libked.h"
 
@@ -30,6 +31,14 @@ char *itoa(unsigned int num) {
     }
 
     result[n - 1] = 0;
+
+    return result;
+}
+
+char *cstr_dup(const char *str) {
+    size_t len = strlen(str);
+    char *result = malloc(sizeof(char) * len);
+    memcpy(result, str, len + 1);
 
     return result;
 }

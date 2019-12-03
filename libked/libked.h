@@ -44,8 +44,13 @@ void display_buffer_lock(void);
 
 void display_buffer_unlock(void);
 
+
+// utilities.c
+
 /* converts unsigned int to string. */
 char *itoa(unsigned int);
+
+char *cstr_dup(const char *str);
 
 // terminal.c
 
