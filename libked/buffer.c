@@ -112,6 +112,21 @@ Buffer *buffer_create(const char *path, const char *buf_name) {
     return result;
 }
 
+Buffer *buffer_create_stdin(void) {
+    size_t len;
+    enum LineEnding lend;
+    AttrRune *content_buf = create_content_buffer_stdin(1024, &len, &lend);
+
+    Buffer *result = buffer_create_empty();
+    result->buf_name = cstr_dup("STDIN");
+    result->content = content_buf;
+    result->buf_size = len;
+    result->gap_end = INIT_GAP_SIZE;
+    result->line_ending = lend;
+
+    return result;
+}
+
 Buffer *buffer_create_system(const char *name) {
     AttrRune *content_buf = malloc(sizeof(AttrRune) * INIT_GAP_SIZE);
 

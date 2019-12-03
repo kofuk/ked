@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <ked/buffer.h>
@@ -62,16 +63,16 @@ static void print_help(void) {
          "Simple console text editor with minimal dependency.\n\n"
          "  --debug -d    Load config file for debug. (not ~/.kedrc)\n"
          "  --help        Print this help and exit.\n"
-         "  --version     Print version and brief license information and exit.");
+         "  --version     Print version and brief license information and "
+         "exit.");
 }
 
 static void print_version(void) {
-    puts(
-        "KED 0.0.1\n\n"
-        "This program is distributed in the hope that it will be useful,\n"
-        "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-        "GNU General Public License for more details.");
+    puts("KED 0.0.1\n\n"
+         "This program is distributed in the hope that it will be useful,\n"
+         "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+         "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+         "GNU General Public License for more details.");
 }
 
 static char *opt_file_name;
@@ -98,7 +99,7 @@ static void handle_option(int argc, char **argv) {
 
                 return;
             }
-        } else if (strncmp(opt, "-", 1) == 0) {
+        } else if (strncmp(opt, "-", 1) == 0 && strcmp(opt, "-") != 0) {
             size_t len = strlen(opt);
             for (size_t j = 1; j < len; ++j) {
                 if (opt[j] == 'd')
@@ -147,7 +148,13 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-    check_term(opt_file_name != NULL && strcmp(opt_file_name, "-"));
+    if (opt_file_name == NULL) {
+        print_help();
+
+        return 1;
+    }
+
+    check_term(strcmp(opt_file_name, "-") == 0);
 
     sigset_t sigs;
     sigemptyset(&sigs);
@@ -156,6 +163,19 @@ int main(int argc, char **argv) {
 
     pthread_t thread;
     pthread_create(&thread, NULL, handle_signal_thread, &sigs);
+
+    Buffer *buf;
+    if (strcmp(opt_file_name, "-") == 0) {
+        buf = buffer_create_stdin();
+
+        int fd = open("/dev/tty", O_RDONLY);
+        if (fd < 0) {
+            buffer_destruct(buf);
+
+            return 1;
+        }
+        dup2(fd, 0);
+    }
 
     keybind_set_up();
     extension_set_up();
@@ -166,7 +186,8 @@ int main(int argc, char **argv) {
         ui_set_up();
         init_system_buffers();
 
-        Buffer *buf = buffer_create(opt_file_name, opt_file_name);
+        if (strcmp(opt_file_name, "-") != 0)
+            buf = buffer_create(opt_file_name, opt_file_name);
 
         if (buf != NULL) {
             set_buffer(buf, BUF_MAIN);

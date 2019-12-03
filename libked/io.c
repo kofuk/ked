@@ -113,6 +113,37 @@ static AttrRune *convert_to_rune_array(char *buf, size_t *len,
     return result;
 }
 
+static inline void count_line_endings(const char *buf, size_t len, size_t *lf,
+                                      size_t *cr, size_t *crlf) {
+    *lf = 0;
+    *cr = 0;
+    *crlf = 0;
+    int prev_cr = 0;
+    for (size_t i = 0; i < len; i++) {
+        switch (buf[i]) {
+        case '\n':
+            if (prev_cr) {
+                ++(*crlf);
+                prev_cr = 0;
+            } else {
+                ++(*lf);
+            }
+            break;
+        case '\r':
+            if (prev_cr) ++(*cr);
+            prev_cr = 1;
+            break;
+        default:
+            if (prev_cr) {
+                ++(*cr);
+                prev_cr = 0;
+            }
+            break;
+        }
+    }
+    if (prev_cr) ++(*cr);
+}
+
 /* Reads file f, and returns array of AttrRune. Original line ending is saved to
  * lend. */
 AttrRune *create_content_buffer(FILE *f, size_t *len, size_t gap_size,
@@ -124,31 +155,8 @@ AttrRune *create_content_buffer(FILE *f, size_t *len, size_t gap_size,
     while ((nread = fread(tmp_buf + buf_pos, 1, read_size, f)) > 0)
         buf_pos += (size_t)nread;
 
-    size_t nlf = 0, ncr = 0, ncrlf = 0;
-    int prev_cr = 0;
-    for (size_t i = 0; i < (*len); i++) {
-        switch (tmp_buf[i]) {
-        case '\n':
-            if (prev_cr) {
-                ++ncrlf;
-                prev_cr = 0;
-            } else {
-                ++nlf;
-            }
-            break;
-        case '\r':
-            if (prev_cr) ++ncr;
-            prev_cr = 1;
-            break;
-        default:
-            if (prev_cr) {
-                ++ncr;
-                prev_cr = 0;
-            }
-            break;
-        }
-    }
-    if (prev_cr) ++ncr;
+    size_t nlf, ncr, ncrlf;
+    count_line_endings(tmp_buf, *len, &nlf, &ncr, &ncrlf);
 
     tmp_buf = convert_to_lf(tmp_buf, len, ncrlf);
     AttrRune *result = convert_to_rune_array(tmp_buf, len, gap_size);
@@ -163,6 +171,46 @@ AttrRune *create_content_buffer(FILE *f, size_t *len, size_t gap_size,
     free(tmp_buf);
 
     return result;
+}
+
+AttrRune *create_content_buffer_stdin(size_t gap_size, size_t *len,
+                                      enum LineEnding *lend) {
+    size_t buf_size = 1024;
+    char *buf = malloc(sizeof(char) * buf_size);
+    size_t buf_off = 0;
+    size_t nread;
+    for (;;) {
+        nread = fread(buf + buf_off, sizeof(char), 1024, stdin);
+        buf_off += nread;
+
+        if (feof(stdin)) {
+            break;
+        }
+
+        if (buf_size - buf_off < 1024) {
+            buf_size += 1024;
+            buf = realloc(buf, sizeof(char) * buf_size);
+        }
+    }
+    *len = buf_off;
+
+    size_t nlf, ncr, ncrlf;
+    count_line_endings(buf, *len, &nlf, &ncr, &ncrlf);
+
+    buf = convert_to_lf(buf, len, ncrlf);
+    AttrRune *result = convert_to_rune_array(buf, len, gap_size);
+
+    if (ncr > nlf && ncr > ncrlf)
+        *lend = LEND_CR;
+    else if (ncrlf > nlf && ncrlf > ncr)
+        *lend = LEND_CRLF;
+    else
+        *lend = LEND_LF;
+
+    free(buf);
+
+    return result;
+
 }
 
 #define WRITE_OUT(file, buf, counter, c)             \

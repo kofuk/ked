@@ -23,6 +23,10 @@
 #include <ked/buffer.h>
 #include <ked/rune.h>
 
+// buffer.c
+
+Buffer *buffer_create_stdin(void);
+
 // face.c
 
 /* Finds face associated with the name. */
@@ -34,6 +38,11 @@ const char *face_lookup(const char *name);
  * pointer will be updated to represent length of array of AttrRune. */
 AttrRune *create_content_buffer(FILE *, size_t *, size_t, enum LineEnding *);
 
+/* Reads from stdin, and returns array of AttrRune with specfied first gap size.
+ * Buffer size and line ending is stored to pointer len and lend. */
+AttrRune *create_content_buffer_stdin(size_t gap_size, size_t *len,
+                                      enum LineEnding *lend);
+
 /* Saves buffer as UTF-8 text file. */
 int save_buffer_utf8(Buffer *);
 
@@ -43,7 +52,6 @@ int save_buffer_utf8(Buffer *);
 void display_buffer_lock(void);
 
 void display_buffer_unlock(void);
-
 
 // utilities.c
 
@@ -88,6 +96,6 @@ int load_extension(const char *);
 void char_write_printable(unsigned char);
 
 /* Write the rune in printable form. */
-void rune_write_printable( Rune);
+void rune_write_printable(Rune);
 
 #endif
