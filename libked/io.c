@@ -203,8 +203,8 @@ int save_buffer_utf8(Buffer *buf) {
             }
         } else {
             WRITE_OUT(f, b, i, r.c[0]);
-            for (int j = 0; i < 4; ++i) {
-                if (r.c[j] >> 6 != 0b11) break;
+            for (int j = 1; j < 4; ++j) {
+                if ((r.c[j] >> 6 & 0b11) != 0b10) break;
                 WRITE_OUT(f, b, i, r.c[j]);
             }
         }
