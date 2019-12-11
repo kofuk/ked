@@ -14,21 +14,24 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
 #include <fcntl.h>
 #include <pwd.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "libked/libked.h"
+#include <ked/Extension.hh>
 
-#include "ked.h"
+#include "libked/libked.hh"
+
+#include "ked.hh"
 
 static char *home_dir;
 
@@ -51,7 +54,7 @@ static int detect_home_dir(void) {
     }
 
     size_t dir_len = strlen(p->pw_dir);
-    home_dir = malloc(sizeof(char) * (dir_len + 1));
+    home_dir = (char *)malloc(sizeof(char) * (dir_len + 1));
     memcpy(home_dir, p->pw_dir, dir_len + 1);
 
     return 1;
@@ -69,7 +72,7 @@ static char *path_expand(const char *path) {
         ++path;
     }
 
-    char *result = malloc(sizeof(char) * (result_len + 1));
+    char *result = (char *)malloc(sizeof(char) * (result_len + 1));
     size_t off = 0;
     if (tilde) {
         off = strlen(home_dir);
@@ -90,7 +93,7 @@ static inline void skip_spaces(const char *content, size_t *off, size_t len) {
     }
 }
 
-static int parse_and_eval(const char *content, size_t len) {
+static bool parse_and_eval(const char *content, size_t len) {
     // temporary implementation
     size_t off = 0;
     skip_spaces(content, &off, len);
@@ -131,21 +134,21 @@ static int parse_and_eval(const char *content, size_t len) {
 
     if (end == 0) return 0;
 
-    char *path = malloc(sizeof(char) * (end - start + 1));
+    char *path = (char *)malloc(sizeof(char) * (end - start + 1));
     memcpy(path, content + start, end - start);
     path[end - start] = 0;
 
     char *expanded = path_expand(path);
     free(path);
 
-    int res = load_extension(expanded);
+    bool res = Ked::Extension::load(expanded);
 
     free(expanded);
 
     return res;
 }
 
-int userpref_load(int debug) {
+bool userpref_load(bool debug) {
     if (!detect_home_dir()) return 0;
 
     char *file_name;
@@ -159,7 +162,7 @@ int userpref_load(int debug) {
         print_error_2(file_name, strerror(errno));
         free(file_name);
 
-        return 0;
+        return false;
     }
 
     int fd = open(file_name, O_RDONLY);
@@ -167,19 +170,20 @@ int userpref_load(int debug) {
         print_error_2(file_name, strerror(errno));
         free(file_name);
 
-        return 0;
+        return false;
     }
 
-    char *config = mmap(NULL, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    char *config =
+        (char *)mmap(NULL, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (config == MAP_FAILED) {
         print_error_2(file_name, strerror(errno));
         close(fd);
         free(file_name);
 
-        return 0;
+        return false;
     }
 
-    int s = parse_and_eval(config, stat_buf.st_size);
+    bool s = parse_and_eval(config, stat_buf.st_size);
 
     close(fd);
     free(file_name);

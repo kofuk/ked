@@ -14,18 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-CC = gcc
-ADDITIONAL_CFLAGS= $(shell cat ../additional_cflags.txt)
-CFLAGS = $(ADDITIONAL_CFLAGS) -fPIC -Wall -Wextra -I../include
-OBJS = buffer.o extension.o face.o io.o keybind.o rune.o terminal.o ui.o utilities.o
-LDFLAGS = -shared -lm -ldl -pthread
+CXXFLAGS = -fPIC -Wall -Wextra -I../include
+OBJS = Buffer.o Extension.o Face.o Rune.o Terminal.o Ui.o io.o
+LDFLAGS = -shared -ldl -pthread
 
 .PHONY: all
 all: $(OBJS)
-	$(CC) -o libked.so $(OBJS) $(LDFLAGS)
+	$(CXX) -o libked.so $(OBJS) $(LDFLAGS)
 
 .PHON: debug
-debug: CFLAGS = $(ADDITIONAL_CFLAGS) -fPIC -Wall -Wextra -O0 -g3 -I../include
+debug: CXXFLAGS = -fPIC -Wall -Wextra -O0 -g3 -I../include
 debug: all
 
 .PHONY: clean

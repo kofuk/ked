@@ -14,31 +14,15 @@
 /* You should have received a copy of the GNU General Public License */
 /* along with this program.  If not, see <https://www.gnu.org/licenses/>. */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef KED_H
+#define KED_H
 
-#include "libked.h"
+#define PROGRAM_NAME "ked"
 
-char *itoa(unsigned int num) {
-    int n = num != 0 ? (unsigned int)log10((double)num) + 2 : 2;
-    char *result = malloc(sizeof(char) * (unsigned int)n);
+/* Load user preference and initialize the editor with it and returns 1 if
+ * success and 0 if fail. If debug is true then it loads etc/kedrc as
+ * preference else loads $HOME/.kedrc. Unless the preference system extension
+ * with loadSystemExtension(string path) first, it fails. */
+bool userpref_load(bool debug);
 
-    for (int i = n - 2; i >= 0; i--) {
-        result[i] = '0' + num % 10;
-        num /= 10;
-    }
-
-    result[n - 1] = 0;
-
-    return result;
-}
-
-char *cstr_dup(const char *str) {
-    size_t len = strlen(str);
-    char *result = malloc(sizeof(char) * len);
-    memcpy(result, str, len + 1);
-
-    return result;
-}
+#endif

@@ -14,9 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-CC = gcc
-ADDITIONAL_CFLAGS = $(shell cat additional_cflags.txt)
-CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -Iinclude
+CXXFLAGS = -Wall -Wextra -Iinclude
 LDFLAGS = -pthread -Llibked -lked
 OBJ = main.o userpref.o
 
@@ -24,10 +22,10 @@ OBJ = main.o userpref.o
 all: $(OBJ)
 	$(MAKE) -C libked $(SUBMAKE_TARGET)
 	$(MAKE) -C ext $(SUBMAKE_TARGET)
-	$(CC) -o ked $(OBJ) $(LDFLAGS)
+	$(CXX) -o ked $(OBJ) $(LDFLAGS)
 
 .PHONY: debug
-debug: CFLAGS = $(ADDITIONAL_CFLAGS) -Wall -Wextra -Iinclude -O0 -g3
+debug: CXXFLAGS = -Wall -Wextra -Iinclude -O0 -g3
 debug: SUBMAKE_TARGET = debug
 debug: all
 
