@@ -82,7 +82,7 @@ namespace Ked {
                                                size_t gap_size) {
             size_t n_rune = 0;
             for (size_t i = 0; i < *len; ++i) {
-                if (buf[i] >> 7 == 0 || (buf[i] >> 6 & 0b11) == 0b11) ++n_rune;
+                if (buf[i] >> 7 == 0 || (buf[i] >> 6 & 0x3) == 0x3) ++n_rune;
             }
 
             AttrRune *result = new AttrRune[n_rune + gap_size];
@@ -92,7 +92,7 @@ namespace Ked {
             rune_buf.fill(0);
             int rune_i = 0;
             for (size_t i = 0; i < *len; ++i) {
-                if (buf[i] >> 7 == 0 || (buf[i] >> 6 & 0b11) == 0b11) {
+                if (buf[i] >> 7 == 0 || (buf[i] >> 6 & 0x3) == 0x3) {
                     if (rune_i != 0) {
                         // FIXME: check if the rune is valid or not.
                         std::copy(std::begin(rune_buf), std::end(rune_buf),
@@ -105,7 +105,7 @@ namespace Ked {
                     rune_buf[rune_i] = buf[i];
                     ++rune_i;
                 } else if (1 <= rune_i && rune_i < (int)sizeof(rune_buf) &&
-                           (buf[i] >> 6 & 0b11) == 0b10) {
+                           (buf[i] >> 6 & 0x3) == 0x2) {
                     rune_buf[rune_i] = buf[i];
                     ++rune_i;
                 } else {
@@ -241,7 +241,7 @@ namespace Ked {
                 } else {
                     out << r->c[0];
                     for (int j = 1; j < 4; ++j) {
-                        if ((r->c[j] >> 6 & 0b11) != 0b10) break;
+                        if ((r->c[j] >> 6 & 0x3) != 0x2) break;
                         out << r->c[j];
                     }
                     if (out.bad()) return false;

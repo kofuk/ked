@@ -390,13 +390,13 @@ namespace Ked {
             redraw_editor();
 
             unsigned char c = (unsigned char)term->get_char();
-            if ((c >> 7 & 1) == 0)
+            if ((c >> 7 & 0x1) == 0)
                 n_byte = 1;
-            else if ((c >> 5 & 0b111) == 0b110)
+            else if ((c >> 5 & 0x7) == 0x6)
                 n_byte = 2;
-            else if ((c >> 4 & 0b1111) == 0b1110)
+            else if ((c >> 4 & 0xf) == 0xe)
                 n_byte = 3;
-            else if ((c >> 3 & 0b11111) == 0b11110)
+            else if ((c >> 3 & 0x1f) == 0x1e)
                 n_byte = 4;
             else {
                 n_byte = 0;
@@ -410,7 +410,7 @@ namespace Ked {
                 broken = 0;
                 for (--n_byte; n_byte > 0; --n_byte) {
                     c = (unsigned char)term->get_char();
-                    if ((c >> 6 & 0b11) != 0b10) {
+                    if ((c >> 6 & 0x3) != 0x2) {
                         broken = 1;
 
                         break;

@@ -74,7 +74,7 @@ namespace Ked {
         } else {
             size_t len = 1;
             for (; len < 4; ++len)
-                if ((c[len] >> 6 & 0b11) != 0b10) break;
+                if ((c[len] >> 6 & 0x3) != 0x2) break;
 
             term.put_buf((char const *)c.data(), len);
         }
@@ -94,7 +94,7 @@ namespace Ked {
     String::String(std::string const &src) {
         size_t n_rune = 0;
         for (auto itr = src.begin(); itr != src.end(); ++itr) {
-            if (*itr >> 7 == 0 || (*itr >> 6 & 0b11) == 0b11) ++n_rune;
+            if (*itr >> 7 == 0 || (*itr >> 6 & 0x3) == 0x3) ++n_rune;
         }
 
         str.reserve(n_rune);
@@ -102,7 +102,7 @@ namespace Ked {
         buf.fill(0);
         int buf_i = 0;
         for (auto itr = src.begin(); itr != src.end(); ++itr) {
-            if (*itr >> 7 == 0 || (*itr >> 6 & 0b11) == 0b11) {
+            if (*itr >> 7 == 0 || (*itr >> 6 & 0x3) == 0x3) {
                 if (buf_i != 0) {
                     str.push_back(buf);
                     buf.fill(0);
@@ -110,7 +110,7 @@ namespace Ked {
                 }
                 buf[buf_i] = *itr;
                 ++buf_i;
-            } else if (buf_i != 0 && (*itr >> 6 & 0b11) == 0b10) {
+            } else if (buf_i != 0 && (*itr >> 6 & 0x3) == 0x2) {
                 if (buf_i >= 4) {
                     // FIXME
                     throw 1;
