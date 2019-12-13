@@ -44,7 +44,7 @@ namespace Ked {
     }
 
     Buffer::Buffer()
-        : point(1), buf_size(0), gap_start(0), gap_end(0), lend(LEND_LF),
+        : point(0), buf_size(0), gap_start(0), gap_end(0), lend(LEND_LF),
           visible_start_point(0), display_range_x_start(0),
           display_range_x_end(0), display_range_y_start(0),
           display_range_y_end(0), modified(false), cursor_x(1), cursor_y(1) {}
@@ -109,9 +109,9 @@ namespace Ked {
             } else if (i + 1 < buf_size - (gap_end - gap_start) &&
                        i + 1 < point) {
                 AttrRune *next = get_rune_ptr(i + 1);
-                if (cursor_x + next->display_width >=
-                        (display_range_x_end - display_range_x_start) &&
-                    !next->is_lf()) {
+                if (!next->is_lf() &&
+                    new_cursor_x + next->display_width >
+                        (display_range_x_end - display_range_x_start)) {
                     new_cursor_x = 1;
                     ++new_cursor_y;
                 }

@@ -302,8 +302,8 @@ namespace Ked {
                         buf->buf_size - (buf->gap_end - buf->gap_start)) {
                         AttrRune *next_rune = buf->get_rune_ptr(i + 1);
                         if (!next_rune->is_lf() &&
-                            x + next_rune->display_width >= term->width) {
-                            if (x + next_rune->display_width == term->width) {
+                            x + next_rune->display_width >= buf->display_range_x_end) {
+                            if (x + next_rune->display_width == buf->display_range_x_end) {
                                 draw_char('\\', buf->default_face_name, x, y);
                             } else {
                                 draw_char(' ', buf->default_face_name, x, y);
