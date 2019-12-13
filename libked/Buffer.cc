@@ -97,21 +97,21 @@ namespace Ked {
             return;
         }
 
-        AttrRune r;
+        AttrRune *r;
         size_t i = visible_start_point;
         while (i < buf_size - (gap_end - gap_start) && i < point) {
-            r = get_rune(i);
-            new_cursor_x += r.display_width;
+            r = get_rune_ptr(i);
+            new_cursor_x += r->display_width;
 
-            if (r.is_lf()) {
+            if (r->is_lf()) {
                 new_cursor_x = 1;
                 ++new_cursor_y;
             } else if (i + 1 < buf_size - (gap_end - gap_start) &&
                        i + 1 < point) {
-                AttrRune next = get_rune(i + 1);
-                if (cursor_x + next.display_width >=
+                AttrRune *next = get_rune_ptr(i + 1);
+                if (cursor_x + next->display_width >=
                         (display_range_x_end - display_range_x_start) &&
-                    !next.is_lf()) {
+                    !next->is_lf()) {
                     new_cursor_x = 1;
                     ++new_cursor_y;
                 }
@@ -126,9 +126,10 @@ namespace Ked {
 
     void Buffer::expand(std::size_t amount) {
         AttrRune *new_buf = new AttrRune[buf_size + amount];
-        std::memcpy(new_buf, content, sizeof(AttrRune) * gap_start);
-        std::memcpy(new_buf + gap_end + amount, content + gap_end,
-                    sizeof(AttrRune) * (buf_size - gap_end));
+        for (std::size_t i = 0; i < gap_start; ++i)
+            new_buf[i] = content[i];
+        for (std::size_t i = gap_end; i < buf_size - gap_end; ++i)
+            new_buf[i + amount] = content[i];
         delete[] content;
 
         content = new_buf;
@@ -149,15 +150,13 @@ namespace Ked {
     }
 
     void Buffer::cursor_move(size_t n, bool forward) {
-        if (n > gap_end - gap_start) expand(n - gap_end - gap_start);
-
         if (forward) {
             if (n > buf_size - gap_end) {
                 n = buf_size - gap_end;
             }
 
-            memcpy(content + gap_start, content + gap_end,
-                   sizeof(AttrRune) * n);
+            for (size_t i = 0; i < n; ++i)
+                content[gap_start + i] = content[gap_end + i];
             gap_start += n;
             gap_end += n;
             point += n;
@@ -166,8 +165,9 @@ namespace Ked {
                 n = gap_start;
             }
 
-            memcpy(content + gap_end - n, content + gap_start - n,
-                   sizeof(AttrRune) * n);
+            for (size_t i = n; i != 0; --i)
+                content[gap_start - i] = content[gap_end - i];
+            content[gap_start] = content[gap_end];
             gap_start -= n;
             gap_end -= n;
             point -= n;
@@ -183,14 +183,14 @@ namespace Ked {
     void Buffer::insert(Rune const &r) {
         if (gap_end - gap_start < MIN_GAP_SIZE) expand(INIT_GAP_SIZE);
 
-        memcpy(content[gap_start].c.data(), r.data(), sizeof(Rune));
+        content[gap_start].c = r;
         content[gap_start].face = default_face;
-        this->content[gap_start].calculate_width();
+        content[gap_start].calculate_width();
 
         ++gap_start;
         ++point;
 
-        modified = 1;
+        modified = true;
 
         update_cursor_position();
 
@@ -346,9 +346,14 @@ namespace Ked {
         return success;
     }
 
-    AttrRune Buffer::get_rune(size_t point) const {
+    AttrRune &Buffer::get_rune(std::size_t point) const {
         return gap_start <= point ? content[point + (gap_end - gap_start)]
                                   : content[point];
+    }
+
+    AttrRune *Buffer::get_rune_ptr(std::size_t point) const {
+        return gap_start <= point ? content + point + (gap_end - gap_start)
+                                  : content + point;
     }
 
     void

@@ -271,7 +271,7 @@ namespace Ked {
         unsigned int y = 1;
 
         size_t i;
-        AttrRune c;
+        AttrRune *c;
         for (size_t b = 0; b < displayed_buffers.size(); ++b) {
             Buffer *buf = displayed_buffers[b];
 
@@ -281,9 +281,9 @@ namespace Ked {
             while (i < buf->buf_size - (buf->gap_end - buf->gap_start)) {
                 if (y >= buf->display_range_y_end) break;
 
-                c = buf->get_rune(i);
+                c = buf->get_rune_ptr(i);
 
-                if (c.is_lf()) {
+                if (c->is_lf()) {
                     for (unsigned int j = x; j <= term->width; ++j)
                         draw_char(' ', buf->default_face, j, y);
 
@@ -291,19 +291,19 @@ namespace Ked {
 
                     x = 1;
                 } else {
-                    draw_rune(c, buf->default_face, x, y);
+                    draw_rune(*c, buf->default_face, x, y);
 
-                    for (unsigned int j = x + 1; j < x + c.display_width; ++j)
+                    for (unsigned int j = x + 1; j < x + c->display_width; ++j)
                         invalidate_point(j, y);
 
-                    x += c.display_width;
+                    x += c->display_width;
 
                     if (i + 1 <
                         buf->buf_size - (buf->gap_end - buf->gap_start)) {
-                        AttrRune next_rune = buf->get_rune(i + 1);
-                        if (!next_rune.is_lf() &&
-                            x + next_rune.display_width >= term->width) {
-                            if (x + next_rune.display_width == term->width) {
+                        AttrRune *next_rune = buf->get_rune_ptr(i + 1);
+                        if (!next_rune->is_lf() &&
+                            x + next_rune->display_width >= term->width) {
+                            if (x + next_rune->display_width == term->width) {
                                 draw_char('\\', buf->default_face, x, y);
                             } else {
                                 draw_char(' ', buf->default_face, x, y);

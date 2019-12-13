@@ -47,10 +47,11 @@ namespace Ked {
         /* Face name this Rune should use. */
         std::string face;
 
-        bool is_protected();
-        bool is_lf();
-        bool operator==(AttrRune const &r);
-        bool operator!=(AttrRune const &r);
+        bool is_protected() const;
+        bool is_lf() const;
+        const AttrRune &operator=(AttrRune const &);
+        bool operator==(AttrRune const &r) const;
+        bool operator!=(AttrRune const &r) const;
         void calculate_width();
         void print(Terminal &term) const;
 

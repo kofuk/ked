@@ -16,18 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <array>
 #include <vector>
 
-#include <ked/Terminal.hh>
 #include <ked/Rune.hh>
+#include <ked/Terminal.hh>
 
 namespace Ked {
 
     // AttrRune
-    bool AttrRune::is_protected() { return (attrs & 1); }
+    bool AttrRune::is_protected() const { return (attrs & 1); }
 
-    bool AttrRune::is_lf() {
+    bool AttrRune::is_lf() const {
         if (c[0] != '\n') return false;
 
         for (auto itr = c.begin() + 1; itr != c.end(); ++itr)
@@ -36,11 +37,22 @@ namespace Ked {
         return true;
     }
 
-    bool AttrRune::operator==(AttrRune const &r) {
+    const AttrRune &AttrRune::operator=(const AttrRune &r) {
+        std::copy(std::begin(r.c), std::end(r.c), std::begin(c));
+        display_width = r.display_width;
+        attrs = r.attrs;
+        face = r.face;
+
+        return r;
+    }
+
+    bool AttrRune::operator==(AttrRune const &r) const {
         return r.c == c && r.face == face;
     }
 
-    bool AttrRune::operator!=(AttrRune const &r) { return !operator==(r); }
+    bool AttrRune::operator!=(AttrRune const &r) const {
+        return !operator==(r);
+    }
 
     void AttrRune::calculate_width() {
         if ((c[0] >> 7 & 1) == 0) {

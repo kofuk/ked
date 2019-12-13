@@ -162,7 +162,7 @@ namespace SystemExtension {
             } else if ((*itr)->buf_name == "__system_footer__") {
                 (*itr)->default_face = face_name_footer;
             } else {
-                //(*itr)->add_cursor_move_listener(&on_cursor_move);
+                (*itr)->add_cursor_move_listener(&on_cursor_move);
             }
         }
     }

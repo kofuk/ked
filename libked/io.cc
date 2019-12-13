@@ -113,7 +113,8 @@ namespace Ked {
                 }
             }
             if (rune_i != 0)
-                std::copy(std::begin(rune_buf), std::end(rune_buf), std::begin(result[res_i].c));
+                std::copy(std::begin(rune_buf), std::end(rune_buf),
+                          std::begin(result[res_i].c));
 
             for (size_t i = 0; i < n_rune; ++i)
                 result[gap_size + i].calculate_width();
@@ -224,8 +225,8 @@ namespace Ked {
 
             for (size_t p = 0; p < buf.buf_size - (buf.gap_end - buf.gap_start);
                  ++p) {
-                AttrRune r = buf.get_rune(p);
-                if (r.is_lf() && buf.lend != LEND_LF) {
+                AttrRune *r = buf.get_rune_ptr(p);
+                if (r->is_lf() && buf.lend != LEND_LF) {
                     switch (buf.lend) {
                     case LEND_CR:
                         out << '\r';
@@ -238,10 +239,10 @@ namespace Ked {
                     }
                     if (out.bad()) return false;
                 } else {
-                    out << r.c[0];
+                    out << r->c[0];
                     for (int j = 1; j < 4; ++j) {
-                        if ((r.c[j] >> 6 & 0b11) != 0b10) break;
-                        out << r.c[j];
+                        if ((r->c[j] >> 6 & 0b11) != 0b10) break;
+                        out << r->c[j];
                     }
                     if (out.bad()) return false;
                 }

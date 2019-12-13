@@ -19,8 +19,8 @@
 #ifndef KED_BUFFER_HH
 #define KED_BUFFER_HH
 
-#include <string>
 #include <functional>
+#include <string>
 
 #include "Rune.hh"
 
@@ -41,7 +41,7 @@ namespace Ked {
      * place on buffer, rather than UI. */
     class Buffer {
         struct BufferListener {
-            std::vector<std::function<void (Buffer &)>> listener;
+            std::vector<std::function<void(Buffer &)>> listener;
             bool calling;
 
             void call(Buffer &buf);
@@ -119,11 +119,12 @@ namespace Ked {
         /* Saves buffer content. */
         bool save();
         /* Gets point's rune. */
-        AttrRune get_rune(std::size_t point) const;
+        AttrRune &get_rune(std::size_t point) const;
+        AttrRune *get_rune_ptr(std::size_t point) const;
 
         /* Adds listener to be called just after change buffer's point in any
          * way. */
-        void add_cursor_move_listener(std::function<void (Buffer &)> listener);
+        void add_cursor_move_listener(std::function<void(Buffer &)> listener);
     };
 
     Buffer *buffer_from_stdin();
