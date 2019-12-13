@@ -19,6 +19,7 @@
 #ifndef KED_UI_HH
 #define KED_UI_HH
 
+#include <list>
 #include <map>
 #include <mutex>
 #include <string>
@@ -32,7 +33,8 @@ namespace Ked {
     class Ui;
 
     namespace KeyHandling {
-        using EditorCommand = std::function<void (Ked::Ui &ui, Ked::Buffer &buf)>;
+        using EditorCommand =
+            std::function<void(Ked::Ui &ui, Ked::Buffer &buf)>;
 
         enum KeyBindState {
             KEYBIND_NOT_HANDLED,
@@ -41,9 +43,22 @@ namespace Ked {
         };
 
         class Keybind {
-            std::map<std::string, EditorCommand> bind_map;
+            struct BindingElement {
+                std::string key;
+                EditorCommand func;
+            };
+
+            std::list<BindingElement *> binding;
+
+            char *compile_key(std::string const &seq);
+            int compare_key(std::string const &key,
+                            std::vector<char> const &seq);
+            int compare_key(std::string const &key,
+                            std::vector<char> const &seq, std::size_t n);
 
         public:
+            ~Keybind();
+
             void add(std::string const &key, EditorCommand func);
             KeyBindState handle(std::vector<char> const &seq, Ui &ui,
                                 Buffer &buf);

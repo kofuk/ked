@@ -182,8 +182,6 @@ int main(int argc, char **argv) {
         Ked::Ui *ui = new Ked::Ui(term);
         Ked::Extension::attach_ui(ui);
 
-        ui->init_system_buffers();
-
         if (opt_file_name != "-")
             buf = new Ked::Buffer(opt_file_name, opt_file_name);
 

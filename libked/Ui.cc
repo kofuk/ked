@@ -17,6 +17,7 @@
  */
 
 #include <array>
+#include <cstring>
 #include <functional>
 #include <iterator>
 #include <mutex>
@@ -29,26 +30,109 @@
 
 namespace Ked {
     namespace KeyHandling {
-        void Keybind::add(std::string const &key, EditorCommand func) {
-            bind_map[key] = func;
+        Keybind::~Keybind() {
+            for (auto itr = std::begin(binding); itr != std::end(binding);
+                 ++itr) {
+                delete *itr;
+            }
         }
 
-        KeyBindState Keybind::handle(const std::vector<char> &seq, Ui &ui,
-                                     Buffer &buf) {
-            for (auto itr = std::begin(bind_map); itr != std::end(bind_map);
+        char *Keybind::compile_key(std::string const &key) {
+            std::size_t len = key.size();
+
+            for (auto itr = std::begin(key); itr != std::end(key); ++itr) {
+                if (*itr == '^' && itr != std::end(key) - 1) --len;
+            }
+
+            char *result = new char[len + 1];
+            std::size_t r_i = 0;
+            result[len] = 0;
+            for (auto itr = std::begin(key); itr != std::end(key); ++itr) {
+                if (*itr == '^' && itr != std::end(key) - 1) {
+                    result[r_i] = *(++itr) - '@';
+                } else {
+                    result[r_i] = *itr;
+                }
+                ++r_i;
+            }
+
+            return result;
+        }
+
+        void Keybind::add(std::string const &key, EditorCommand func) {
+            char *seq = compile_key(key);
+
+            for (auto itr = std::begin(binding); itr != std::end(binding);
                  ++itr) {
-                for (size_t i = 0; i < itr->first.size(); ++i) {
-                    if (i >= seq.size()) return KEYBIND_NOT_HANDLED;
+                int cmp = (*itr)->key.compare(seq);
+                if (cmp == 0) {
+                    (*itr)->func = func;
+                    delete[] seq;
 
-                    if (i == itr->first.size() - 1 && i == seq.size() - 1 &&
-                        itr->first[i] == seq[i]) {
-                        (itr->second)(ui, buf);
+                    return;
+                } else if (cmp > 0) {
+                    BindingElement *e = new BindingElement;
+                    e->key = std::string(seq);
+                    e->func = func;
+                    binding.insert(itr, e);
 
-                        return KEYBIND_HANDLED;
-                    } else if (itr->first[i] != seq[i])
-                        break;
+                    delete[] seq;
+
+                    return;
                 }
             }
+            BindingElement *e = new BindingElement;
+            e->key = std::string(seq);
+            e->func = func;
+            binding.insert(std::end(binding), e);
+            delete[] seq;
+        }
+
+        int Keybind::compare_key(std::string const &key,
+                                 std::vector<char> const &seq) {
+            std::size_t len = seq.size() > key.size() ? key.size() : seq.size();
+            for (std::size_t i = 0; i < len; ++i) {
+                int cmp = seq[i] - key[i];
+                if (cmp != 0) return cmp;
+            }
+            if (seq.size() == key.size())
+                return 0;
+            else if (seq.size() < key.size())
+                return -key[len];
+            else
+                return seq[len];
+        }
+
+        int Keybind::compare_key(std::string const &key,
+                                 std::vector<char> const &seq, std::size_t n) {
+            char *str = new char[seq.size() + 1];
+            str[seq.size()] = 0;
+            for (std::size_t i = 0; i < seq.size(); ++i)
+                str[i] = seq[i];
+
+            int cmp = std::strncmp(key.c_str(), str, n);
+            delete[] str;
+
+            return cmp;
+        }
+
+        KeyBindState Keybind::handle(std::vector<char> const &seq, Ui &ui,
+                                     Buffer &buf) {
+            for (auto itr = std::begin(binding); itr != std::end(binding);
+                 ++itr) {
+                if (compare_key((*itr)->key, seq, seq.size()) == 0) {
+                    int cmp = compare_key((*itr)->key, seq);
+                    if (cmp == 0) {
+                        ((*itr)->func)(ui, buf);
+
+                        return KEYBIND_HANDLED;
+                    }
+
+                    return KEYBIND_WAIT;
+                }
+            }
+
+            if (seq.size() != 1) return KEYBIND_HANDLED;
 
             return KEYBIND_NOT_HANDLED;
         }

@@ -78,6 +78,7 @@ namespace Ked {
             content = new AttrRune[buf_size];
         }
         buf_size = stat_buf.st_size;
+        gap_end = INIT_GAP_SIZE;
         content = IO::create_content_buffer(f, &buf_size, INIT_GAP_SIZE, &lend);
     }
 
