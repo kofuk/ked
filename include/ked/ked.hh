@@ -30,12 +30,6 @@
 #define FACE_COLOR_256(fg, bg) "\e[0m\e[38;5;" #fg "m\e[48;5;" #bg "m"
 #define FACE_ATTR_COLOR_256(attr, fg, bg) \
     "\e[" #attr "m\e[38;5;" #fg "m\e[48;5;" #bg "m"
-
-extern "C" {
-    void extension_on_load(void);
-    void extension_on_unload(void);
-    void extension_on_attach_ui(Ked::Ui &ui);
-    void extension_on_detach_ui(Ked::Ui &ui);
-}
+#define FACE_NONE "\e[0m"
 
 #endif

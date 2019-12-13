@@ -71,7 +71,7 @@ namespace Ked {
         std::vector<Buffer *> buffers;
         std::vector<AttrRune> display_buffer;
 
-        std::string current_face;
+        std::string current_face_name;
         std::mutex display_buffer_mutex;
 
         std::vector<std::function<void(std::vector<Buffer *> &)>>

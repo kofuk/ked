@@ -45,7 +45,7 @@ namespace Ked {
          * | ... | 1 bit      | */
         unsigned int attrs;
         /* Face name this Rune should use. */
-        std::string face;
+        std::string face_name;
 
         bool is_protected() const;
         bool is_lf() const;

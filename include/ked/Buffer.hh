@@ -82,7 +82,7 @@ namespace Ked {
         /* Whether this buffer is modified of not. */
         bool modified;
         /* Default face name. */
-        std::string default_face;
+        std::string default_face_name;
         /* Cursor X position in display area. */
         std::size_t cursor_x;
         /* Cursor Y position in display area. */

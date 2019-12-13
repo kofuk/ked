@@ -41,13 +41,13 @@ namespace Ked {
         std::copy(std::begin(r.c), std::end(r.c), std::begin(c));
         display_width = r.display_width;
         attrs = r.attrs;
-        face = r.face;
+        face_name = r.face_name;
 
         return r;
     }
 
     bool AttrRune::operator==(AttrRune const &r) const {
-        return r.c == c && r.face == face;
+        return r.c == c && r.face_name == face_name;
     }
 
     bool AttrRune::operator!=(AttrRune const &r) const {

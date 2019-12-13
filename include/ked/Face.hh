@@ -26,8 +26,6 @@ namespace Ked {
         void add(std::string const &name, std::string const &face);
 
         std::string &lookup(std::string const &name);
-
-        void set_default(std::string const &face);
     } // namespace Face
 } // namespace Ked
 

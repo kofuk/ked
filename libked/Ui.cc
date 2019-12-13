@@ -172,24 +172,24 @@ namespace Ked {
     }
 
     /* Draws char to the terminal if needed. */
-    void Ui::draw_char(unsigned char c, std::string const &face, unsigned int x,
+    void Ui::draw_char(unsigned char c, std::string const &face_name, unsigned int x,
                        unsigned int y) {
         if (x > term->width || y > term->height ||
             (display_buffer[(y - 1) * term->width + x - 1].c[0] == c &&
-             face == display_buffer[(y - 1) * term->width + x - 1].face) ||
+             face_name == display_buffer[(y - 1) * term->width + x - 1].face_name) ||
             c == '\n')
             return;
 
-        if (face != current_face) {
-            term->put_str(Face::lookup(face));
+        if (face_name != current_face_name) {
+            term->put_str(Face::lookup(face_name));
 
-            current_face = face;
+            current_face_name = face_name;
         }
 
         term->move_cursor(x, y);
         term->put_char(c);
         display_buffer[(y - 1) * term->width + x - 1].c[0] = c;
-        display_buffer[(y - 1) * term->width + x - 1].face = face;
+        display_buffer[(y - 1) * term->width + x - 1].face_name = face_name;
         for (int i = 1; i < 4; ++i)
             display_buffer[(y - 1) * term->width + x - 1].c[i] = 0;
     }
@@ -197,21 +197,21 @@ namespace Ked {
     /* Draws AttrRune with its attrubutes to the termianl if needed. */
     void Ui::draw_rune(AttrRune const &r, std::string const &default_face,
                        unsigned int x, unsigned int y) {
-        std::string face = r.face;
-        if (face.length() == 0) {
-            face = default_face;
+        std::string face_name = r.face_name;
+        if (face_name.empty()) {
+            face_name = default_face;
         }
 
         if (x > term->width || y > term->height ||
             (display_buffer[(y - 1) * term->width + x - 1].c == r.c &&
-             face == display_buffer[(y - 1) * term->width + x - 1].face) ||
+             face_name == display_buffer[(y - 1) * term->width + x - 1].face_name) ||
             r.c[0] == '\n')
             return;
 
-        if (r.face != current_face) {
-            term->put_str(Face::lookup(r.face));
+        if (face_name != current_face_name) {
+            term->put_str(Face::lookup(face_name));
 
-            current_face = r.face;
+            current_face_name = face_name;
         }
 
         term->move_cursor(x, y);
@@ -285,13 +285,13 @@ namespace Ked {
 
                 if (c->is_lf()) {
                     for (unsigned int j = x; j <= term->width; ++j)
-                        draw_char(' ', buf->default_face, j, y);
+                        draw_char(' ', buf->default_face_name, j, y);
 
                     ++y;
 
                     x = 1;
                 } else {
-                    draw_rune(*c, buf->default_face, x, y);
+                    draw_rune(*c, buf->default_face_name, x, y);
 
                     for (unsigned int j = x + 1; j < x + c->display_width; ++j)
                         invalidate_point(j, y);
@@ -304,11 +304,11 @@ namespace Ked {
                         if (!next_rune->is_lf() &&
                             x + next_rune->display_width >= term->width) {
                             if (x + next_rune->display_width == term->width) {
-                                draw_char('\\', buf->default_face, x, y);
+                                draw_char('\\', buf->default_face_name, x, y);
                             } else {
-                                draw_char(' ', buf->default_face, x, y);
+                                draw_char(' ', buf->default_face_name, x, y);
                                 ++x;
-                                draw_char('\\', buf->default_face, x, y);
+                                draw_char('\\', buf->default_face_name, x, y);
                             }
 
                             x = buf->display_range_x_start;
@@ -322,7 +322,7 @@ namespace Ked {
 
             for (unsigned int j = y; j < buf->display_range_y_end; j++) {
                 for (unsigned int k = x; k <= term->width; k++)
-                    draw_char(' ', buf->default_face, k, j);
+                    draw_char(' ', buf->default_face_name, k, j);
                 x = buf->display_range_x_start;
             }
         }

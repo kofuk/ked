@@ -149,21 +149,14 @@ namespace SystemExtension {
             current_col = buf.point - result->start;
     }
 
-    static const char *face_name_header = "SystemHeader";
-    static const char *face_name_footer = "SystemFooter";
-
-    static const char *face_header = FACE_ATTR_COLOR_256(1, 16, 231);
-    static const char *face_footer = FACE_COLOR_256(16, 231);
-
     static void on_buffer_entry_change(std::vector<Ked::Buffer *> &bufs) {
         for (auto itr = std::begin(bufs); itr != std::end(bufs); ++itr) {
-            if ((*itr)->buf_name == "__system_header__") {
-                (*itr)->default_face = face_name_header;
-            } else if ((*itr)->buf_name == "__system_footer__") {
-                (*itr)->default_face = face_name_footer;
-            } else {
+            if ((*itr)->buf_name == "__system_header__")
+                (*itr)->default_face_name = "SystemHeader";
+            else if ((*itr)->buf_name == "__system_footer__")
+                (*itr)->default_face_name = "SystemFooter";
+            else
                 (*itr)->add_cursor_move_listener(&on_cursor_move);
-            }
         }
     }
 
@@ -198,8 +191,9 @@ namespace SystemExtension {
         ui.add_global_keybind("^F", EDITOR_COMMAND_PTR(cursor_forward));
         ui.add_global_keybind("\x7f", EDITOR_COMMAND_PTR(delete_backward));
 
-        Ked::Face::add(face_name_header, face_header);
-        Ked::Face::add(face_name_footer, face_footer);
+        Ked::Face::add("", FACE_NONE);
+        Ked::Face::add("SystemHeader", FACE_ATTR_COLOR_256(1, 16, 231));
+        Ked::Face::add("SystemFooter", FACE_COLOR_256(16, 231));
     }
 
     void extension_on_unload() {

@@ -184,7 +184,7 @@ namespace Ked {
         if (gap_end - gap_start < MIN_GAP_SIZE) expand(INIT_GAP_SIZE);
 
         content[gap_start].c = r;
-        content[gap_start].face = default_face;
+        content[gap_start].face_name = default_face_name;
         content[gap_start].calculate_width();
 
         ++gap_start;

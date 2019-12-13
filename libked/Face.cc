@@ -21,14 +21,11 @@
 namespace Ked {
     namespace Face {
         static std::map<std::string, std::string> face_map;
-        static std::string default_face;
 
         void add(std::string const &name, std::string const &face) {
             face_map[name] = face;
         }
 
         std::string &lookup(std::string const &name) { return face_map[name]; }
-
-        void set_default(std::string const &face) { default_face = face; }
     } // namespace Face
 } // namespace Ked
