@@ -190,9 +190,10 @@ int main(int argc, char **argv) {
             buf->display_range_x_start = 1;
             buf->display_range_x_end = term->width;
             buf->display_range_y_start = 2;
-            buf->display_range_y_end = term->height - 1;
+            buf->display_range_y_end = term->height;
             ui->buffer_add(buf);
-            ui->buffer_show(buf);
+            ui->buffer_show(buf->buf_name);
+            ui->buffer_switch(buf->buf_name);
 
             ui->main_loop();
         }

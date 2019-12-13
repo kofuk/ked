@@ -161,7 +161,8 @@ namespace Ked {
 
     } // namespace KeyHandling
 
-    Ui::Ui(Terminal *term) : editor_exited(false), term(term) {
+    Ui::Ui(Terminal *term)
+        : editor_exited(false), term(term), current_buffer(nullptr) {
         init_system_buffers();
         display_buffer.resize(term->width * term->height);
     }
@@ -172,11 +173,12 @@ namespace Ked {
     }
 
     /* Draws char to the terminal if needed. */
-    void Ui::draw_char(unsigned char c, std::string const &face_name, unsigned int x,
-                       unsigned int y) {
+    void Ui::draw_char(unsigned char c, std::string const &face_name,
+                       unsigned int x, unsigned int y) {
         if (x > term->width || y > term->height ||
             (display_buffer[(y - 1) * term->width + x - 1].c[0] == c &&
-             face_name == display_buffer[(y - 1) * term->width + x - 1].face_name) ||
+             face_name ==
+                 display_buffer[(y - 1) * term->width + x - 1].face_name) ||
             c == '\n')
             return;
 
@@ -204,7 +206,8 @@ namespace Ked {
 
         if (x > term->width || y > term->height ||
             (display_buffer[(y - 1) * term->width + x - 1].c == r.c &&
-             face_name == display_buffer[(y - 1) * term->width + x - 1].face_name) ||
+             face_name ==
+                 display_buffer[(y - 1) * term->width + x - 1].face_name) ||
             r.c[0] == '\n')
             return;
 
@@ -227,9 +230,22 @@ namespace Ked {
         display_buffer[(y - 1) * term->width + x - 1].c[0] = '\n';
     }
 
-    void Ui::buffer_show(Buffer *buf) {
-        displayed_buffers.push_back(buf);
-        current_buffer = buf;
+    void Ui::buffer_show(std::string const &name) {
+        for (auto itr = std::begin(buffers); itr != std::end(buffers); ++itr) {
+            if ((*itr)->buf_name == name) {
+                displayed_buffers.push_back(*itr);
+                break;
+            }
+        }
+    }
+
+    void Ui::buffer_switch(const std::string &name) {
+        for (auto itr = std::begin(buffers); itr != std::end(buffers); ++itr) {
+            if ((*itr)->buf_name == name) {
+                current_buffer = *itr;
+                break;
+            }
+        }
     }
 
     void Ui::buffer_add(Buffer *buf) {
@@ -251,7 +267,7 @@ namespace Ked {
         header->insert('e');
         header->insert('d');
         buffer_add(header);
-        buffer_show(header);
+        buffer_show("__system_header__");
 
         Buffer *footer = new Buffer("__system_footer__");
         footer->display_range_x_start = 1;
@@ -259,7 +275,7 @@ namespace Ked {
         footer->display_range_y_start = term->height;
         footer->display_range_y_end = term->height + 1;
         buffer_add(footer);
-        buffer_show(footer);
+        buffer_show("__system_footer__");
     }
 
     void Ui::exit_editor() { editor_exited = true; }
@@ -302,8 +318,10 @@ namespace Ked {
                         buf->buf_size - (buf->gap_end - buf->gap_start)) {
                         AttrRune *next_rune = buf->get_rune_ptr(i + 1);
                         if (!next_rune->is_lf() &&
-                            x + next_rune->display_width >= buf->display_range_x_end) {
-                            if (x + next_rune->display_width == buf->display_range_x_end) {
+                            x + next_rune->display_width >=
+                                buf->display_range_x_end) {
+                            if (x + next_rune->display_width ==
+                                buf->display_range_x_end) {
                                 draw_char('\\', buf->default_face_name, x, y);
                             } else {
                                 draw_char(' ', buf->default_face_name, x, y);
@@ -331,7 +349,6 @@ namespace Ked {
                               current_buffer->cursor_x - 1,
                           current_buffer->display_range_y_start +
                               current_buffer->cursor_y - 1);
-        term->flush_buffer();
     }
 
     void Ui::write_message(std::string const &msg) {
@@ -361,6 +378,9 @@ namespace Ked {
     }
 
     void Ui::main_loop() {
+        if (current_buffer == nullptr)
+            current_buffer = buffers[buffers.size() - 1];
+
         Rune buf;
         unsigned int n_byte;
         bool broken;

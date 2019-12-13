@@ -112,7 +112,9 @@ namespace Ked {
 
         void main_loop();
         /* Sets buffer to drawing target. */
-        void buffer_show(Buffer *buf);
+        void buffer_show(std::string const &name);
+        /* Select the buffer as current_buffer. */
+        void buffer_switch(std::string const &name);
         /* Add buffer to internal buffer list. */
         void buffer_add(Buffer *buf);
     };
