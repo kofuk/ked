@@ -166,6 +166,7 @@ int main(int argc, char **argv) {
 
     Ked::Buffer *buf;
     if (opt_file_name == "-") {
+        std::cerr << "Reading from stdin..." << std::endl;
         buf = Ked::buffer_from_stdin();
 
         int fd = open("/dev/tty", O_RDONLY);
