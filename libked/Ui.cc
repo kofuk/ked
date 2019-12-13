@@ -239,7 +239,7 @@ namespace Ked {
         }
     }
 
-    void Ui::buffer_switch(const std::string &name) {
+    void Ui::buffer_switch(std::string const &name) {
         for (auto itr = std::begin(buffers); itr != std::end(buffers); ++itr) {
             if ((*itr)->buf_name == name) {
                 current_buffer = *itr;
@@ -349,6 +349,7 @@ namespace Ked {
                               current_buffer->cursor_x - 1,
                           current_buffer->display_range_y_start +
                               current_buffer->cursor_y - 1);
+        term->flush_buffer();
     }
 
     void Ui::write_message(std::string const &msg) {
