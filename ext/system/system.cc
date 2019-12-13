@@ -57,14 +57,16 @@ namespace SystemExtension {
             buf.cursor_move(rest + current_col, true);
             moving = false;
         } else {
-            std::size_t len = result->end - n_start;
+            /* If I use result->end here, it includes '\n' so exclusive line end
+             * point is result->start. */
+            std::size_t len = result->start - n_start;
             if (len > current_col) {
                 moving = true;
                 buf.cursor_move(rest + current_col, 1);
                 moving = false;
             } else {
                 moving = true;
-                buf.cursor_move(rest + len, true);
+                buf.cursor_move(rest + len + 1, true);
                 moving = false;
             }
         }
