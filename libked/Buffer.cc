@@ -149,13 +149,15 @@ namespace Ked {
         }
     }
 
-    void Buffer::cursor_move(size_t n, bool forward) {
+    void Buffer::cursor_move(std::size_t n, bool forward) {
+        if (n == 0) return;
+
         if (forward) {
             if (n > buf_size - gap_end) {
                 n = buf_size - gap_end;
             }
 
-            for (size_t i = 0; i < n; ++i)
+            for (std::size_t i = 0; i < n; ++i)
                 content[gap_start + i] = content[gap_end + i];
             gap_start += n;
             gap_end += n;
@@ -165,9 +167,8 @@ namespace Ked {
                 n = gap_start;
             }
 
-            for (size_t i = n; i != 0; --i)
-                content[gap_start - i] = content[gap_end - i];
-            content[gap_start] = content[gap_end];
+            for (std::size_t i = 0; i < n; ++i)
+                content[gap_end - i - 1] = content[gap_start - i - 1];
             gap_start -= n;
             gap_end -= n;
             point -= n;
