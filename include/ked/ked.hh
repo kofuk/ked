@@ -22,7 +22,8 @@
 #include "Buffer.hh"
 #include "Ui.hh"
 
-#define EDITOR_COMMAND_ARG_LIST Ked::Ui &ui, Ked::Buffer &buf
+#define EDITOR_COMMAND_ARG_LIST \
+    [[maybe_unused]] Ked::Ui &ui, [[maybe_unused]] Ked::Buffer &buf
 
 #define DEFINE_EDITOR_COMMAND(name) void ec_##name(EDITOR_COMMAND_ARG_LIST)
 #define EDITOR_COMMAND_PTR(name) &ec_##name

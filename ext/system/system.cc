@@ -26,9 +26,6 @@ namespace SystemExtension {
     static std::size_t current_col = 0;
     static bool moving;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
     DEFINE_EDITOR_COMMAND(cursor_forward) { buf.cursor_move(1, true); }
 
     DEFINE_EDITOR_COMMAND(cursor_back) { buf.cursor_move(1, false); }
