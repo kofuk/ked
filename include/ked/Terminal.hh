@@ -25,7 +25,7 @@
 
 namespace Ked {
     class Terminal {
-        char io_buffer[1024];
+        char io_buffer[4096];
         std::size_t io_buffer_off;
 
         struct termios *orig_termios;

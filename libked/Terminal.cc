@@ -62,13 +62,13 @@ namespace Ked {
     }
 
     void Terminal::put_char(char c) {
-        if (io_buffer_off >= 1024) flush_buffer();
+        if (io_buffer_off >= 4096) flush_buffer();
         io_buffer[io_buffer_off++] = c;
     }
 
     void Terminal::put_str(char const *str) {
         for (; *str; ++str) {
-            if (io_buffer_off >= 1024) flush_buffer();
+            if (io_buffer_off >= 4096) flush_buffer();
 
             io_buffer[io_buffer_off++] = *str;
         }
@@ -76,7 +76,7 @@ namespace Ked {
 
     void Terminal::put_str(std::string const &str) {
         for (auto itr = std::begin(str); itr != std::end(str); ++itr) {
-            if (io_buffer_off >= 1024) flush_buffer();
+            if (io_buffer_off >= 4096) flush_buffer();
 
             io_buffer[io_buffer_off++] = *itr;
         }
@@ -84,7 +84,7 @@ namespace Ked {
 
     void Terminal::put_buf(char const *buf, std::size_t len) {
         for (size_t i = 0; i < len; ++i) {
-            if (io_buffer_off >= 1024) flush_buffer();
+            if (io_buffer_off >= 4096) flush_buffer();
 
             io_buffer[io_buffer_off++] = buf[i];
         }
