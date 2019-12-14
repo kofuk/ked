@@ -92,7 +92,7 @@ namespace Ked {
         unsigned int new_cursor_y = 1;
 
         if (point < visible_start_point) {
-            new_cursor_y = 0;
+            cursor_y = 0;
 
             return;
         }
