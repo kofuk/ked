@@ -70,6 +70,8 @@ namespace Ked {
         std::vector<Buffer *> displayed_buffers;
         std::vector<Buffer *> buffers;
         std::vector<AttrRune> display_buffer;
+        unsigned int maybe_next_x;
+        unsigned int maybe_next_y;
 
         std::string current_face_name;
         std::mutex display_buffer_mutex;

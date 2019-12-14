@@ -162,7 +162,8 @@ namespace Ked {
     } // namespace KeyHandling
 
     Ui::Ui(Terminal *term)
-        : editor_exited(false), term(term), current_buffer(nullptr) {
+        : editor_exited(false), maybe_next_x(term->width),
+          maybe_next_y(term->height), term(term), current_buffer(nullptr) {
         init_system_buffers();
         display_buffer.resize(term->width * term->height);
     }
@@ -188,12 +189,15 @@ namespace Ked {
             current_face_name = face_name;
         }
 
-        term->move_cursor(x, y);
+        if (x != maybe_next_x || y != maybe_next_y) term->move_cursor(x, y);
         term->put_char(c);
         display_buffer[(y - 1) * term->width + x - 1].c[0] = c;
         display_buffer[(y - 1) * term->width + x - 1].face_name = face_name;
         for (int i = 1; i < 4; ++i)
             display_buffer[(y - 1) * term->width + x - 1].c[i] = 0;
+
+        maybe_next_x = x + 1;
+        maybe_next_y = y;
     }
 
     /* Draws AttrRune with its attrubutes to the termianl if needed. */
@@ -217,9 +221,12 @@ namespace Ked {
             current_face_name = face_name;
         }
 
-        term->move_cursor(x, y);
+        if (x != maybe_next_x || y != maybe_next_y) term->move_cursor(x, y);
         r.print(*term);
         display_buffer[(y - 1) * term->width + x - 1] = r;
+
+        maybe_next_x = x + r.display_width;
+        maybe_next_y = y;
     }
 
     /* Make next drawing in the position to be redrawn. */
@@ -349,6 +356,10 @@ namespace Ked {
                               current_buffer->cursor_x - 1,
                           current_buffer->display_range_y_start +
                               current_buffer->cursor_y - 1);
+        maybe_next_x = current_buffer->display_range_x_start +
+                       current_buffer->cursor_x - 1;
+        maybe_next_y = current_buffer->display_range_y_start +
+                       current_buffer->cursor_y - 1;
         term->flush_buffer();
     }
 
