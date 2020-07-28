@@ -17,6 +17,7 @@
  */
 
 #include <map>
+#include <string>
 
 namespace Ked {
     namespace Face {
